@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app-sportsante
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:/app/dev.db
+      - NEXTAUTH_URL=http://localhost:3000
+      - AUTH_SECRET=change_me_in_prod_env
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    volumes:
+      # Persist the SQLite database
+      - ./dev.db:/app/dev.db
+      # Optional: Persist uploads if any
+      # - ./public/uploads:/app/public/uploads

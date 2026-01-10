@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  image     String?
+  role      String     @default("COACH") // Enum Role removed for SQLite
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  coachDetails CoachDetails?
+  sessions     Session[]
+  absences     Absence[]
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  birthDate DateTime?
+  height    Float?   // in cm
+  pathology String?  // text libre
+  emergencyContact String? // JSON string or text
+  goals     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  sessions    Session[]
+  measurements Measurement[]
+}
+
+model CoachDetails {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  hourlyRate  Float    @default(0)
+  diplomes    String?  // URLs or text
+  rcpInsurance String? // URL or text
+  skills      String?  // JSON or comma separated
+}
+
+model Service {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  durationMin Int         @default(60)
+  type        String      @default("INDIVIDUAL") // Enum ServiceType removed for SQLite
+  isPack      Boolean     @default(false)
+  packCount   Int?        @default(1)
+  
+  sessions    Session[]
+}
+
+model Session {
+  id        String        @id @default(cuid())
+  date      DateTime
+  status    String        @default("PLANNED") // Enum SessionStatus removed for SQLite
+  notes     String?
+  
+  coachId   String
+  coach     User          @relation(fields: [coachId], references: [id])
+  
+  clientId  String
+  client    Client        @relation(fields: [clientId], references: [id])
+  
+  serviceId String
+  service   Service       @relation(fields: [serviceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  syncedToCalendar Boolean @default(false)
+}
+
+model Absence {
+  id        String   @id @default(cuid())
+  coachId   String
+  coach     User     @relation(fields: [coachId], references: [id])
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+}
+
+model Measurement {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  date        DateTime @default(now())
+  
+  weight      Float?   // kg
+  fatMass     Float?   // %
+  muscleMass  Float?   // %
+  
+  notes       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
