@@ -1,0 +1,162 @@
+time="2026-01-10T21:19:01Z" level=warning msg="/root/app-sportsante/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Image app-sportsante-web Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 518B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.75kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:20-alpine
+#3 DONE 0.5s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [builder 1/5] WORKDIR /app
+#5 CACHED
+
+#6 [base 1/1] FROM docker.io/library/node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488ac03a370d448
+#6 resolve docker.io/library/node:20-alpine@sha256:658d0f63e501824d6c23e06d4bb95c71e7d704537c9d9272f488ac03a370d448 0.0s done
+#6 CACHED
+
+#7 [internal] load build context
+#7 transferring context: 183.51kB 0.4s done
+#7 DONE 0.5s
+
+#8 [deps 1/4] RUN apk add --no-cache libc6-compat
+#8 ...
+
+#9 [runner 2/8] RUN addgroup --system --gid 1001 nodejs
+#9 DONE 1.3s
+
+#10 [runner 3/8] RUN adduser --system --uid 1001 nextjs
+#10 DONE 0.8s
+
+#8 [deps 1/4] RUN apk add --no-cache libc6-compat
+#8 1.976 (1/3) Installing musl-obstack (1.2.3-r2)
+#8 1.986 (2/3) Installing libucontext (1.3.3-r0)
+#8 1.996 (3/3) Installing gcompat (1.1.0-r4)
+#8 2.015 OK: 11.0 MiB in 21 packages
+#8 DONE 2.1s
+
+#11 [deps 2/4] WORKDIR /app
+#11 DONE 0.0s
+
+#12 [deps 3/4] COPY package.json package-lock.json* ./
+#12 DONE 0.1s
+
+#13 [deps 4/4] RUN npm ci
+#13 1.732 npm warn EBADENGINE Unsupported engine {
+#13 1.732 npm warn EBADENGINE   package: '@capacitor/cli@8.0.0',
+#13 1.732 npm warn EBADENGINE   required: { node: '>=22.0.0' },
+#13 1.732 npm warn EBADENGINE   current: { node: 'v20.19.6', npm: '10.8.2' }
+#13 1.732 npm warn EBADENGINE }
+#13 23.72 
+#13 23.72 added 567 packages, and audited 568 packages in 23s
+#13 23.72 
+#13 23.72 166 packages are looking for funding
+#13 23.72   run `npm fund` for details
+#13 23.77 
+#13 23.77 3 vulnerabilities (1 high, 2 critical)
+#13 23.77 
+#13 23.77 To address issues that do not require attention, run:
+#13 23.77   npm audit fix
+#13 23.77 
+#13 23.77 To address all issues (including breaking changes), run:
+#13 23.77   npm audit fix --force
+#13 23.77 
+#13 23.77 Run `npm audit` for details.
+#13 23.77 npm notice
+#13 23.77 npm notice New major version of npm available! 10.8.2 -> 11.7.0
+#13 23.77 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+#13 23.77 npm notice To update run: npm install -g npm@11.7.0
+#13 23.77 npm notice
+#13 DONE 24.1s
+
+#14 [builder 2/5] COPY --from=deps /app/node_modules ./node_modules
+#14 DONE 14.2s
+
+#15 [builder 3/5] COPY . .
+#15 DONE 1.6s
+
+#16 [builder 4/5] RUN npx prisma generate
+#16 1.736 prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+#16 1.736 Please manually install OpenSSL and try installing Prisma again.
+#16 2.534 Environment variables loaded from .env
+#16 2.538 Prisma schema loaded from prisma/schema.prisma
+#16 2.590 prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+#16 2.590 Please manually install OpenSSL and try installing Prisma again.
+#16 4.058 
+#16 4.058 ✔ Generated Prisma Client (v5.21.1) to ./node_modules/@prisma/client in 217ms
+#16 4.058 
+#16 4.058 Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+#16 4.058 
+#16 4.058 Tip: Curious about the SQL queries Prisma ORM generates? Optimize helps you enhance your visibility: https://pris.ly/tip-2-optimize
+#16 4.058 
+#16 4.262 npm notice
+#16 4.262 npm notice New major version of npm available! 10.8.2 -> 11.7.0
+#16 4.262 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+#16 4.262 npm notice To update run: npm install -g npm@11.7.0
+#16 4.262 npm notice
+#16 DONE 4.3s
+
+#17 [builder 5/5] RUN npm run build
+#17 0.656 
+#17 0.656 > web@0.1.0 build
+#17 0.656 > next build
+#17 0.656 
+#17 1.936    ▲ Next.js 16.0.8 (Turbopack)
+#17 1.937    - Environments: .env
+#17 1.937 
+#17 1.940  ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+#17 1.971    Creating an optimized production build ...
+#17 36.69  ✓ Compiled successfully in 34.0s
+#17 36.70    Running TypeScript ...
+#17 49.66 Failed to compile.
+#17 49.66 
+#17 49.66 ./actions/auth-actions.ts:43:24
+#17 49.66 Type error: Property 'role' does not exist on type 'User'.
+#17 49.66 
+#17 49.66 [0m [90m 41 |[39m [36mexport[39m [36masync[39m [36mfunction[39m createUser(prevState[33m:[39m any[33m,[39m formData[33m:[39m [33mFormData[39m) {
+#17 49.66  [90m 42 |[39m     [36mconst[39m session [33m=[39m [36mawait[39m auth()
+#17 49.66 [31m[1m>[22m[39m[90m 43 |[39m     [36mif[39m (session[33m?[39m[33m.[39muser[33m?[39m[33m.[39mrole [33m!==[39m [32m"ADMIN"[39m) {
+#17 49.66  [90m    |[39m                        [31m[1m^[22m[39m
+#17 49.66  [90m 44 |[39m         [36mreturn[39m { message[33m:[39m [32m"Non autorisé. Seuls les administrateurs peuvent créer des comptes."[39m }
+#17 49.66  [90m 45 |[39m     }
+#17 49.66  [90m 46 |[39m[0m
+#17 49.72 Next.js build worker exited with code: 1 and signal: null
+#17 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+------
+ > [builder 5/5] RUN npm run build:
+49.66 Type error: Property 'role' does not exist on type 'User'.
+49.66 
+49.66 [0m [90m 41 |[39m [36mexport[39m [36masync[39m [36mfunction[39m createUser(prevState[33m:[39m any[33m,[39m formData[33m:[39m [33mFormData[39m) {
+49.66  [90m 42 |[39m     [36mconst[39m session [33m=[39m [36mawait[39m auth()
+49.66 [31m[1m>[22m[39m[90m 43 |[39m     [36mif[39m (session[33m?[39m[33m.[39muser[33m?[39m[33m.[39mrole [33m!==[39m [32m"ADMIN"[39m) {
+49.66  [90m    |[39m                        [31m[1m^[22m[39m
+49.66  [90m 44 |[39m         [36mreturn[39m { message[33m:[39m [32m"Non autorisé. Seuls les administrateurs peuvent créer des comptes."[39m }
+49.66  [90m 45 |[39m     }
+49.66  [90m 46 |[39m[0m
+49.72 Next.js build worker exited with code: 1 and signal: null
+------
+Dockerfile:27
+
+--------------------
+
+  25 |     # Build Next.js
+
+  26 |     RUN npx prisma generate
+
+  27 | >>> RUN npm run build
+
+  28 |     
+
+  29 |     # Production image, copy all the files and run next
+
+--------------------
+
+failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+

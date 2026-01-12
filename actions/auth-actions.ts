@@ -40,7 +40,8 @@ const CreateUserSchema = z.object({
 
 export async function createUser(prevState: any, formData: FormData) {
     const session = await auth()
-    if (session?.user?.role !== "ADMIN") {
+    const user = session?.user as any
+    if (user?.role !== "ADMIN") {
         return { message: "Non autorisé. Seuls les administrateurs peuvent créer des comptes." }
     }
 
