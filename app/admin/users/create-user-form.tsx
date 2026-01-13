@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2 } from "lucide-react"
 
 const initialState = {
     message: "",
@@ -25,7 +26,6 @@ export function CreateUserForm() {
                     name="name"
                     placeholder="Ex: Jean Dupont"
                     required
-                    className="text-[16px]" // Empêche le zoom sur iPhone
                 />
             </div>
 
@@ -37,7 +37,6 @@ export function CreateUserForm() {
                     type="email"
                     placeholder="jean@sportsante.com"
                     required
-                    className="text-[16px]" // Empêche le zoom sur iPhone
                 />
             </div>
 
@@ -49,19 +48,18 @@ export function CreateUserForm() {
                     type="password"
                     required
                     minLength={6}
-                    className="text-[16px]" // Empêche le zoom sur iPhone
                 />
             </div>
 
             <div className="space-y-2">
                 <Label htmlFor="role">Rôle</Label>
                 <Select name="role" defaultValue="COACH">
-                    <SelectTrigger className="text-[16px]">
-                        <SelectValue placeholder="Selectionner un rôle" />
+                    <SelectTrigger className="text-base md:text-sm">
+                        <SelectValue placeholder="Sélectionner un rôle" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="COACH" className="text-[16px]">Coach</SelectItem>
-                        <SelectItem value="ADMIN" className="text-[16px]">Administrateur</SelectItem>
+                        <SelectItem value="COACH">Coach</SelectItem>
+                        <SelectItem value="ADMIN">Administrateur</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -73,6 +71,7 @@ export function CreateUserForm() {
             )}
 
             <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isPending ? "Création..." : "Créer l'utilisateur"}
             </Button>
         </form>

@@ -28,14 +28,14 @@ export default async function ClientsPage() {
 
             <Card className="border-border/50 shadow-md">
                 <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
                         <CardTitle className="text-lg font-medium">Répertoire</CardTitle>
-                        <div className="relative w-full max-w-sm">
+                        <div className="relative w-full sm:w-auto sm:min-w-[280px] sm:max-w-sm">
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                                 type="search"
                                 placeholder="Rechercher (nom, objectif)..."
-                                className="pl-8 bg-background/50"
+                                className="pl-8 bg-background/50 text-base"
                             />
                         </div>
                     </div>

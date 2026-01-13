@@ -124,9 +124,9 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
                     </CardContent>
                     <div className="px-6 pb-6 space-y-3">
                         <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Légende Statuts</div>
-                        <div className="flex items-center gap-2 text-xs"><div className="w-3 h-3 rounded-full bg-blue-100 border border-blue-200"></div> Planifiée</div>
-                        <div className="flex items-center gap-2 text-xs"><div className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600"></div> Confirmée / Effectuée</div>
-                        <div className="flex items-center gap-2 text-xs"><div className="w-3 h-3 rounded-full bg-rose-100 border border-rose-200 line-through decoration-rose-400"></div> Annulée</div>
+                        <div className="flex items-center gap-2 text-sm"><div className="w-3 h-3 rounded-full bg-blue-500 border border-blue-600" aria-hidden="true"></div> Planifiée</div>
+                        <div className="flex items-center gap-2 text-sm"><div className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600" aria-hidden="true"></div> Confirmée / Effectuée</div>
+                        <div className="flex items-center gap-2 text-sm"><div className="w-3 h-3 rounded-full bg-rose-500 border border-rose-600" aria-hidden="true"></div> Annulée</div>
                     </div>
                 </Card>
 

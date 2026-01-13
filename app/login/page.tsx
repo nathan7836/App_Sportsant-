@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell } from "lucide-react"
+import { Dumbbell, Loader2 } from "lucide-react"
 
 export default function LoginPage() {
     const [errorMessage, formAction, isPending] = useActionState(
@@ -33,18 +33,19 @@ export default function LoginPage() {
                     <form action={formAction} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" name="email" placeholder="admin@sportsante.com" required />
+                            <Input id="email" type="email" name="email" placeholder="admin@sportsante.com" required className="text-base" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">Mot de passe</Label>
-                            <Input id="password" type="password" name="password" required />
+                            <Input id="password" type="password" name="password" required className="text-base" />
                         </div>
                         <div aria-live="polite" aria-atomic="true">
                             {errorMessage && (
-                                <p className="text-sm text-destructive font-medium">{errorMessage}</p>
+                                <p className="text-sm text-destructive font-medium bg-destructive/10 p-3 rounded-md">{errorMessage}</p>
                             )}
                         </div>
-                        <Button className="w-full" aria-disabled={isPending}>
+                        <Button className="w-full" disabled={isPending}>
+                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             {isPending ? "Connexion..." : "Se connecter"}
                         </Button>
                     </form>

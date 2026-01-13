@@ -5,10 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 
 export function MobileFab() {
-    const { toggleSidebar, open } = useSidebar()
-
-    // Always show FAB on mobile, toggle action handles the state
-    // if (open) return null 
+    const { toggleSidebar } = useSidebar()
 
     return (
         <Button
