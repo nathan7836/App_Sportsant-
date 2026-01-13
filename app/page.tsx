@@ -11,13 +11,10 @@ import { redirect } from "next/navigation"
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  console.log("Rendering Home Page...");
   const session = await auth()
   if (!session) {
-    console.log("No session, redirecting...");
     redirect("/login")
   }
-  console.log("Session found:", session.user?.email);
 
   // Fetch Settings (Goal)
   const settings = await getGlobalSettings()

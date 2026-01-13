@@ -68,14 +68,6 @@ export function AppSidebar({ userRole, ...props }: React.ComponentProps<typeof S
                         <SidebarMenu>
                             {items.filter(item => {
                                 if (userRole === "COACH") {
-                                    return item.title === "Planning" || item.title === "Tableau de bord" // Maybe Dashboard too? Plan says "only Assigned planning". 
-                                    // User said: "uniquement une vue sur les coaching qui leurs sont attribué... il ne peut pas avoir acces au planning du coach b"
-                                    // And "coach a a acces a un planning".
-                                    // Usually Dashboard has global stats they shouldn't see?
-                                    // Let's stick to Planning as requested. "uniquement une vue sur les coaching".
-                                    // I'll keep Planning. I'll remove Dashboard if it shows global stats.
-                                    // Current Dashboard (/page.tsx) shows "Derniers inscrits", "Revenue". Coach shouldn't see Revenue.
-                                    // So ONLY Planning.
                                     return item.title === "Planning"
                                 }
                                 return true

@@ -9,9 +9,7 @@ export function AndroidNotificationManager({ userId }: { userId: string }) {
         const sync = async () => {
             const unsynced = await checkUnsyncedSessions(userId)
             if (unsynced && unsynced.length > 0) {
-                console.log(`[Android Integration] Found ${unsynced.length} new sessions for user ${userId}.`)
-
-                // Simulate Android Notification
+                // Android Notification
                 if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification("Nouveau Coaching Attribué", {
                         body: `Vous avez ${unsynced.length} nouvelle(s) séance(s) ajoutée(s) à votre planning.`
@@ -26,12 +24,11 @@ export function AndroidNotificationManager({ userId }: { userId: string }) {
                     })
                 }
 
-                // Simulate Calendar Add and Toast
+                // Calendar Add and Toast
                 unsynced.forEach(session => {
-                    toast.info(`🗓️ Ajout au calendrier: ${session.service.name} avec ${session.client.name}`, {
+                    toast.info(`Ajout au calendrier: ${session.service.name} avec ${session.client.name}`, {
                         description: `${new Date(session.date).toLocaleDateString()} à ${new Date(session.date).toLocaleTimeString()}`
                     })
-                    console.log("Adding to Native Calendar:", session)
                 })
 
                 // Mark as synced

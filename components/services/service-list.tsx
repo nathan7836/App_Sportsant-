@@ -1,6 +1,6 @@
 'use client'
 
-import { Service } from "@prisma/client"
+import type { Service } from "@/types/prisma"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"

@@ -4,13 +4,10 @@
 import { signIn } from "@/auth"
 import { AuthError } from "next-auth"
 import { z } from "zod"
-// import { PrismaClient } from "@prisma/client" // REMOVED
-import { prisma } from "@/lib/prisma" // ADDED
+import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { auth } from "@/auth"
-import { revalidatePath } from "next/cache" // ADDED
-
-// const prisma = new PrismaClient() // REMOVED
+import { revalidatePath } from "next/cache"
 
 export async function authenticate(
     prevState: string | undefined,
@@ -40,8 +37,7 @@ const CreateUserSchema = z.object({
 
 export async function createUser(prevState: any, formData: FormData) {
     const session = await auth()
-    const user = session?.user as any
-    if (user?.role !== "ADMIN") {
+    if (session?.user?.role !== "ADMIN") {
         return { message: "Non autorisé. Seuls les administrateurs peuvent créer des comptes." }
     }
 

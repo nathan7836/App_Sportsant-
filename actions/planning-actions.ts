@@ -101,18 +101,6 @@ export async function createSession(prevState: any, formData: FormData) {
                 current.setDate(current.getDate() + 1)
             }
 
-            if (sessionsToCreate.length === 0) {
-                // Fallback if the start date didn't match any day? 
-                // Or maybe the user expects the start date to be included anyway?
-                // Let's ensure the Specific Start Date is included IF it matches nothing? 
-                // No, standard behavior: generate matching days in range.
-                // Ensure start date IS included if it matches.
-            }
-
-            // Batch create
-            // Prisma createMany is not supported on SQLite? 
-            // "The createMany is not supported by SQLite connector." -> TRUE.
-            // Must use loop.
             for (const s of sessionsToCreate) {
                 await prisma.session.create({ data: s })
             }
@@ -136,8 +124,7 @@ export async function createSession(prevState: any, formData: FormData) {
             return { success: true }
         }
 
-    } catch (error) {
-        console.error("Failed to create session:", error)
+    } catch {
         return { error: "Erreur lors de la création." }
     }
 }
@@ -173,8 +160,7 @@ export async function updateSession(prevState: any, formData: FormData) {
         })
         revalidatePath("/planning")
         return { success: true, message: "Séance mise à jour" }
-    } catch (error) {
-        console.error("Failed to update session:", error)
+    } catch {
         return { error: "Erreur lors de la modification." }
     }
 }
@@ -192,8 +178,7 @@ export async function deleteSession(prevState: any, formData: FormData) {
         })
         revalidatePath("/planning")
         return { success: true, message: "Séance supprimée" }
-    } catch (error) {
-        console.error("Failed to delete session:", error)
+    } catch {
         return { error: "Erreur lors de la suppression." }
     }
 }

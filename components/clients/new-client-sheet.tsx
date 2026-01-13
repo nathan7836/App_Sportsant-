@@ -18,7 +18,7 @@ import { Plus, Pencil } from "lucide-react"
 import { createClient, updateClient } from "@/actions/client-actions"
 import { useState } from "react"
 import { toast } from "sonner"
-import type { Client } from "@prisma/client"
+import type { Client } from "@/types/prisma"
 
 interface NewClientSheetProps {
     client?: Client

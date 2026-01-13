@@ -1,12 +1,9 @@
-
 import NextAuth from "next-auth"
 import authConfig from "./auth.config"
 import Credentials from "next-auth/providers/credentials"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { prisma } from "@/lib/prisma"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig,
@@ -26,11 +23,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     if (passwordsMatch) return user
                 }
 
-                console.log('Invalid credentials')
                 return null
             },
         }),
     ],
     session: { strategy: "jwt" },
-    useSecureCookies: false, // Force insecure cookies for HTTP
+    useSecureCookies: process.env.NODE_ENV === "production",
 })

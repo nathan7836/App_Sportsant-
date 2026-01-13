@@ -12,10 +12,6 @@ const ServiceSchema = z.object({
     description: z.string().optional(),
 })
 
-const ManageServiceSchema = ServiceSchema.extend({
-    serviceId: z.string().optional(), // Optional for create, required for update if we strictly separated... but commonly used for upsert pattern or distinct ID field
-})
-
 export async function createService(prevState: any, formData: FormData) {
     const session = await auth()
     if (!session || session.user?.role !== "ADMIN") return { error: "Non autorisé" }
@@ -37,8 +33,7 @@ export async function createService(prevState: any, formData: FormData) {
         })
         revalidatePath("/services")
         return { success: true, message: "Service créé avec succès" }
-    } catch (error) {
-        console.error("Failed to create service:", error)
+    } catch {
         return { error: "Erreur lors de la création du service." }
     }
 }
@@ -68,8 +63,7 @@ export async function updateService(prevState: any, formData: FormData) {
         })
         revalidatePath("/services")
         return { success: true, message: "Service mis à jour" }
-    } catch (error) {
-        console.error("Failed to update service:", error)
+    } catch {
         return { error: "Erreur lors de la modification." }
     }
 }
@@ -96,8 +90,7 @@ export async function deleteService(prevState: any, formData: FormData) {
         })
         revalidatePath("/services")
         return { success: true, message: "Service supprimé" }
-    } catch (error) {
-        console.error("Failed to delete service:", error)
+    } catch {
         return { error: "Erreur lors de la suppression." }
     }
 }

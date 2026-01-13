@@ -3,19 +3,15 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { CreateUserForm } from "./create-user-form"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-// import { PrismaClient } from "@prisma/client" // REMOVED
-import { prisma } from "@/lib/prisma" // ADDED
-import { User } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
+import type { User } from "@/types/prisma"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 
-// const prisma = new PrismaClient() // REMOVED
-
 export default async function AdminUsersPage() {
     const session = await auth()
-    const user = session?.user as any
 
-    if (user?.role !== "ADMIN") {
+    if (session?.user?.role !== "ADMIN") {
         redirect("/")
     }
 

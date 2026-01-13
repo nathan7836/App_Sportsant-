@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Download, TrendingUp, Wallet, CalendarCheck, User } from "lucide-react"
+import { TrendingUp, Wallet, CalendarCheck, User } from "lucide-react"
 import { DownloadReportButton } from "@/components/billing/download-report-button"
 
 export default async function BillingPage() {

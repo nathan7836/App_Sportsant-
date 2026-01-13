@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Clock, MapPin, Plus } from "lucide-react"
 import { useState } from "react"
 import { EditSessionSheet } from "./edit-session-sheet"
-import { User } from "@prisma/client"
+import type { User } from "@/types/prisma"
 
 interface SessionWithDetails {
     id: string

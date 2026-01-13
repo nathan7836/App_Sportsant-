@@ -55,14 +55,30 @@ export async function deleteCoach(prevState: any, formData: FormData) {
     }
 }
 
-// Minimal update for basic info, more can be added later
 export async function updateCoach(prevState: any, formData: FormData) {
     const session = await auth()
     if (!session || session.user?.role !== "ADMIN") return { error: "Non autorisé" }
 
-    // ... Implementation similar to others, omitted for brevity as User asked primarily for delete/modify restriction
-    // But we need at least a shell if we bind it.
-    // For now, I'll focus on creating the List component that simply calls Delete.
-    // Modifying a user (Coach) involves name/email/role. 
-    return { success: true }
+    const userId = formData.get("userId") as string
+    const name = formData.get("name") as string
+    const email = formData.get("email") as string
+
+    if (!userId) return { error: "ID manquant" }
+
+    const validatedFields = CoachSchema.safeParse({ name, email })
+    if (!validatedFields.success) return { error: validatedFields.error.issues[0].message }
+
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                name: validatedFields.data.name,
+                email: validatedFields.data.email
+            }
+        })
+        revalidatePath("/coaches")
+        return { success: true, message: "Coach modifié avec succès" }
+    } catch {
+        return { error: "Erreur lors de la modification (Email déjà utilisé ?)" }
+    }
 }

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { updateSession, deleteSession } from "@/actions/planning-actions"
 import { useActionState, useState, useEffect } from "react"
-import { User } from "@prisma/client"
+import type { User } from "@/types/prisma"
 import { Trash2 } from "lucide-react"
 
 interface EditSessionSheetProps {

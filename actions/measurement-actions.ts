@@ -46,8 +46,7 @@ export async function addMeasurement(prevState: any, formData: FormData) {
         })
         revalidatePath("/clients")
         return { success: true, message: "Mesure ajoutée" }
-    } catch (error) {
-        console.error("Failed to add measurement:", error)
+    } catch {
         return { error: "Erreur lors de l'ajout" }
     }
 }

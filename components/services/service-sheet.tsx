@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createService, updateService } from "@/actions/service-actions"
 import { useActionState, useState, useEffect } from "react"
 import { Plus, Loader2 } from "lucide-react"
-import { Service } from "@prisma/client"
+import type { Service } from "@/types/prisma"
 
 interface ServiceSheetProps {
     service?: Service // If present, Edit mode. If null, Create mode.

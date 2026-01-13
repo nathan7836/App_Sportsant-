@@ -11,25 +11,18 @@ const SettingsSchema = z.object({
 
 export async function getGlobalSettings() {
     try {
-        // Safe check if model exists on client (handles case where prisma generate failed)
-        if (!(prisma as any).globalSettings) {
-            console.warn("GlobalSettings model not found in Prisma Client. Returning default.")
-            return { id: "default", monthlyGoal: 2000.0 }
-        }
-
-        const settings = await (prisma as any).globalSettings.findUnique({
+        const settings = await prisma.globalSettings.findUnique({
             where: { id: "default" }
         })
 
         if (!settings) {
-            return await (prisma as any).globalSettings.create({
+            return await prisma.globalSettings.create({
                 data: { id: "default", monthlyGoal: 2000.0 }
             })
         }
 
         return settings
-    } catch (e) {
-        console.error("Failed to fetch settings:", e)
+    } catch {
         return { id: "default", monthlyGoal: 2000.0 }
     }
 }
@@ -47,21 +40,16 @@ export async function updateMonthlyGoal(formData: FormData) {
     }
 
     try {
-        if (!(prisma as any).globalSettings) {
-            return { error: "Erreur database (schema mismatch). Redémarrez le serveur." }
-        }
-
-        await (prisma as any).globalSettings.upsert({
+        await prisma.globalSettings.upsert({
             where: { id: "default" },
             update: { monthlyGoal: validatedFields.data.monthlyGoal },
             create: { id: "default", monthlyGoal: validatedFields.data.monthlyGoal }
         })
 
         revalidatePath("/billing")
-        revalidatePath("/") // Also dashboard
+        revalidatePath("/")
         return { success: true, message: "Objectif mis à jour" }
-    } catch (error) {
-        console.error("Failed to update settings:", error)
+    } catch {
         return { error: "Erreur lors de la mise à jour." }
     }
 }

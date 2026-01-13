@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Plus } from "lucide-react"
 import { createSession } from "@/actions/planning-actions"
 import { useActionState, useState, useEffect } from "react"
-import { Client, User, Service } from "@prisma/client"
+import type { Client, User, Service } from "@/types/prisma"
 
 interface NewSessionSheetProps {
     clients: Client[]

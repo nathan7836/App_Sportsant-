@@ -34,8 +34,6 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from "@/auth"
 
-// ...
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -46,8 +44,8 @@ export default async function RootLayout({
   try {
     session = await auth()
     userRole = session?.user?.role
-  } catch (e) {
-    console.error("Auth failed during build:", e)
+  } catch {
+    // Auth can fail during build time, ignore
   }
 
   return (
