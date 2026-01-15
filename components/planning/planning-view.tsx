@@ -23,9 +23,11 @@ interface PlanningViewProps {
     sessions: SessionWithDetails[]
     coaches: User[]
     currentDate: Date
+    userRole?: string
+    currentUserId?: string
 }
 
-export function PlanningView({ sessions, coaches, currentDate }: PlanningViewProps) {
+export function PlanningView({ sessions, coaches, currentDate, userRole, currentUserId }: PlanningViewProps) {
     const [selectedSession, setSelectedSession] = useState<SessionWithDetails | null>(null)
     const [isEditOpen, setIsEditOpen] = useState(false)
 
@@ -144,6 +146,8 @@ export function PlanningView({ sessions, coaches, currentDate }: PlanningViewPro
                 coaches={coaches}
                 open={isEditOpen}
                 onOpenChange={setIsEditOpen}
+                userRole={userRole}
+                currentUserId={currentUserId}
             />
         </>
     )

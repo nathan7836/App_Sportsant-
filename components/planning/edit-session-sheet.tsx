@@ -22,14 +22,18 @@ import {
     CalendarCheck,
     Play,
     AlertTriangle,
-    Save
+    Save,
+    CalendarClock
 } from "lucide-react"
+import { SessionChangeRequestSheet } from "./session-change-request-sheet"
 
 interface EditSessionSheetProps {
     session: any
     coaches: User[]
     open: boolean
     onOpenChange: (open: boolean) => void
+    userRole?: string
+    currentUserId?: string
 }
 
 // Status workflow
@@ -56,10 +60,22 @@ const TIME_SLOTS = [
     { label: "20h", value: "20:00" },
 ]
 
-export function EditSessionSheet({ session, coaches, open, onOpenChange }: EditSessionSheetProps) {
+export function EditSessionSheet({ session, coaches, open, onOpenChange, userRole, currentUserId }: EditSessionSheetProps) {
     const [updateState, updateAction, isUpdatePending] = useActionState(updateSession, null)
     const [deleteState, deleteAction, isDeletePending] = useActionState(deleteSession, null)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [showRequestSheet, setShowRequestSheet] = useState(false)
+
+    // Check if user is coach and this is their session
+    const isCoach = userRole === 'COACH'
+    const isAdmin = userRole === 'ADMIN'
+    const isOwnSession = session?.coachId === currentUserId
+
+    // Check if can request change (24h before)
+    const sessionDate = session ? new Date(session.date) : new Date()
+    const now = new Date()
+    const hoursUntilSession = (sessionDate.getTime() - now.getTime()) / (1000 * 60 * 60)
+    const canRequestChange = hoursUntilSession >= 24
 
     // Form state
     const [selectedDate, setSelectedDate] = useState("")
@@ -313,7 +329,31 @@ export function EditSessionSheet({ session, coaches, open, onOpenChange }: EditS
                     </Button>
                 </form>
 
-                {/* DELETE SECTION */}
+                {/* REQUEST CHANGE SECTION (for coaches) */}
+                {isCoach && isOwnSession && (
+                    <div className="mt-6 pt-6 border-t">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full gap-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+                            onClick={() => setShowRequestSheet(true)}
+                            disabled={!canRequestChange}
+                        >
+                            <CalendarClock className="h-4 w-4" />
+                            {canRequestChange
+                                ? "Demander une modification"
+                                : "Modification impossible (< 24h)"}
+                        </Button>
+                        {!canRequestChange && (
+                            <p className="text-xs text-muted-foreground text-center mt-2">
+                                Contactez directement l'administration pour modifier cette séance.
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                {/* DELETE SECTION (admin only) */}
+                {isAdmin && (
                 <div className="mt-8 pt-6 border-t border-destructive/20">
                     {!showDeleteConfirm ? (
                         <Button
@@ -359,6 +399,14 @@ export function EditSessionSheet({ session, coaches, open, onOpenChange }: EditS
                         </Card>
                     )}
                 </div>
+                )}
+
+                {/* Session Change Request Sheet */}
+                <SessionChangeRequestSheet
+                    session={session}
+                    open={showRequestSheet}
+                    onOpenChange={setShowRequestSheet}
+                />
             </SheetContent>
         </Sheet>
     )

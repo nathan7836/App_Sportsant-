@@ -82,20 +82,22 @@ model Session {
   date      DateTime
   status    String        @default("PLANNED") // Enum SessionStatus removed for SQLite
   notes     String?
-  
+
   coachId   String
   coach     User          @relation(fields: [coachId], references: [id])
-  
+
   clientId  String
   client    Client        @relation(fields: [clientId], references: [id])
-  
+
   serviceId String
   service   Service       @relation(fields: [serviceId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   syncedToCalendar Boolean @default(false)
+
+  changeRequests SessionChangeRequest[]
 }
 
 model Absence {
@@ -132,4 +134,36 @@ model GlobalSettings {
   id          String   @id @default("default")
   monthlyGoal Float    @default(2000)
   updatedAt   DateTime @updatedAt
+}
+
+// Demande de modification/annulation de séance
+model SessionChangeRequest {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  coachId     String
+
+  type        String   // CANCEL, RESCHEDULE
+  reason      String   // Motif de la demande
+  newDate     DateTime? // Nouvelle date proposée (si RESCHEDULE)
+
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminResponse String? // Réponse de l'admin
+  respondedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Notifications système
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String   // Destinataire
+  type        String   // REQUEST_NEW, REQUEST_APPROVED, REQUEST_REJECTED
+  title       String
+  message     String
+  link        String?  // Lien vers la ressource concernée
+  read        Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
 }
