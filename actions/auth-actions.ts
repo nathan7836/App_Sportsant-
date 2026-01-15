@@ -66,11 +66,16 @@ export async function createUser(prevState: any, formData: FormData) {
                 email,
                 password: hashedPassword,
                 role,
+                coachDetails: role === "COACH" ? {
+                    create: {} // Initialize empty details for coaches
+                } : undefined
             },
         })
-        revalidatePath("/admin/users") // ADDED
+        revalidatePath("/admin/users")
+        revalidatePath("/coaches")
         return { message: "Utilisateur créé avec succès !", success: true }
     } catch (e) {
+        console.error(e)
         return { message: "Erreur : Cet email est peut-être déjà utilisé." }
     }
 }
