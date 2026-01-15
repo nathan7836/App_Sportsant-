@@ -4,159 +4,455 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import {
+    Plus,
+    Calendar,
+    Clock,
+    User,
+    Dumbbell,
+    Euro,
+    Check,
+    ChevronRight,
+    Search,
+    X,
+    Repeat,
+    CalendarPlus
+} from "lucide-react"
 import { createSession } from "@/actions/planning-actions"
-import { useActionState, useState, useEffect } from "react"
-import { Client, User, Service } from "@prisma/client"
+import { useActionState, useState, useEffect, useMemo } from "react"
+import { Client, User as UserType, Service } from "@prisma/client"
+import { toast } from "sonner"
 
 interface NewSessionSheetProps {
     clients: Client[]
-    coaches: User[]
+    coaches: UserType[]
     services: Service[]
 }
+
+// Créneaux horaires courants
+const TIME_SLOTS = [
+    { label: "8h", value: "08:00" },
+    { label: "9h", value: "09:00" },
+    { label: "10h", value: "10:00" },
+    { label: "11h", value: "11:00" },
+    { label: "12h", value: "12:00" },
+    { label: "14h", value: "14:00" },
+    { label: "15h", value: "15:00" },
+    { label: "16h", value: "16:00" },
+    { label: "17h", value: "17:00" },
+    { label: "18h", value: "18:00" },
+    { label: "19h", value: "19:00" },
+    { label: "20h", value: "20:00" },
+]
 
 export function NewSessionSheet({ clients, coaches, services }: NewSessionSheetProps) {
     const [open, setOpen] = useState(false)
     const [state, formAction, isPending] = useActionState(createSession, null)
 
-    // Default today's date
-    const today = new Date().toISOString().split('T')[0]
+    // Form state
+    const [selectedDate, setSelectedDate] = useState(() => {
+        const today = new Date()
+        return today.toISOString().split('T')[0]
+    })
+    const [selectedTime, setSelectedTime] = useState("")
+    const [selectedCoach, setSelectedCoach] = useState("")
+    const [selectedClient, setSelectedClient] = useState("")
+    const [selectedService, setSelectedService] = useState("")
+    const [clientSearch, setClientSearch] = useState("")
+    const [showRecurrence, setShowRecurrence] = useState(false)
+    const [notes, setNotes] = useState("")
 
+    // Selected objects for display
+    const selectedClientObj = clients.find(c => c.id === selectedClient)
+    const selectedCoachObj = coaches.find(c => c.id === selectedCoach)
+    const selectedServiceObj = services.find(s => s.id === selectedService)
+
+    // Filter clients by search
+    const filteredClients = useMemo(() => {
+        if (!clientSearch) return clients
+        const search = clientSearch.toLowerCase()
+        return clients.filter(c =>
+            c.name.toLowerCase().includes(search) ||
+            c.phone?.toLowerCase().includes(search) ||
+            c.email?.toLowerCase().includes(search)
+        )
+    }, [clients, clientSearch])
+
+    // Reset form on close
+    useEffect(() => {
+        if (!open) {
+            setSelectedTime("")
+            setSelectedCoach("")
+            setSelectedClient("")
+            setSelectedService("")
+            setClientSearch("")
+            setShowRecurrence(false)
+            setNotes("")
+        }
+    }, [open])
+
+    // Handle success
     useEffect(() => {
         if (state?.success) {
+            toast.success("Séance planifiée avec succès !")
             setOpen(false)
         }
+        if (state?.error) {
+            toast.error(state.error)
+        }
     }, [state])
+
+    // Format date for display
+    const formatDisplayDate = (dateStr: string) => {
+        const date = new Date(dateStr)
+        return date.toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long'
+        })
+    }
+
+    // Check if form is complete
+    const isFormComplete = selectedDate && selectedTime && selectedCoach && selectedClient && selectedService
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button className="bg-primary text-primary-foreground shadow-lg font-bold">
-                    <Plus className="mr-2 h-4 w-4" /> Séance
+                <Button className="bg-primary text-primary-foreground shadow-lg font-bold gap-2">
+                    <Plus className="h-4 w-4" /> Séance
                 </Button>
             </SheetTrigger>
-            <SheetContent>
-                <SheetHeader>
-                    <SheetTitle>Nouvelle Séance</SheetTitle>
+            <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+                <SheetHeader className="pb-4">
+                    <SheetTitle className="flex items-center gap-2">
+                        <CalendarPlus className="h-5 w-5 text-primary" />
+                        Nouvelle Séance
+                    </SheetTitle>
                     <SheetDescription>
-                        Planifier une session de coaching.
+                        Planifiez rapidement une session de coaching
                     </SheetDescription>
                 </SheetHeader>
-                <form action={formAction} className="space-y-4 mt-6">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="date">Date (JJ/MM/AAAA)</Label>
-                            <Input id="date" name="date" type="text" placeholder="ex: 25/01/2026" required defaultValue={new Date().toLocaleDateString('fr-FR')} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="time">Heure (HH:MM)</Label>
-                            <Input id="time" name="time" type="text" placeholder="ex: 14:30" required />
-                        </div>
+
+                <form action={formAction} className="space-y-6">
+                    {/* Hidden fields for form submission */}
+                    <input type="hidden" name="date" value={selectedDate ? new Date(selectedDate).toLocaleDateString('fr-FR') : ""} />
+                    <input type="hidden" name="time" value={selectedTime} />
+                    <input type="hidden" name="coachId" value={selectedCoach} />
+                    <input type="hidden" name="clientId" value={selectedClient} />
+                    <input type="hidden" name="serviceId" value={selectedService} />
+                    <input type="hidden" name="notes" value={notes} />
+
+                    {/* 1. DATE SELECTION */}
+                    <div className="space-y-3">
+                        <Label className="flex items-center gap-2 text-base font-semibold">
+                            <Calendar className="h-4 w-4 text-primary" />
+                            Date
+                        </Label>
+                        <Input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="h-12 text-base"
+                            min={new Date().toISOString().split('T')[0]}
+                        />
+                        {selectedDate && (
+                            <p className="text-sm text-muted-foreground capitalize">
+                                {formatDisplayDate(selectedDate)}
+                            </p>
+                        )}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="coachId">Coach</Label>
-                        <Select name="coachId" required>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selectionner un coach" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {coaches.map(coach => (
-                                    <SelectItem key={coach.id} value={coach.id}>
-                                        {coach.name || coach.email}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <Separator />
 
-                    <div className="space-y-2">
-                        <Label htmlFor="clientId">Client</Label>
-                        <Select name="clientId" required>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selectionner un client" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {clients.map(client => (
-                                    <SelectItem key={client.id} value={client.id}>
-                                        {client.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    {/* 2. TIME SELECTION */}
+                    <div className="space-y-3">
+                        <Label className="flex items-center gap-2 text-base font-semibold">
+                            <Clock className="h-4 w-4 text-primary" />
+                            Heure
+                        </Label>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="serviceId">Service</Label>
-                        <Select name="serviceId" required>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Type de séance" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {services.map(service => (
-                                    <SelectItem key={service.id} value={service.id}>
-                                        {service.name} ({(service.durationMin)} min) - {service.price}€
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Recurrence Section */}
-                    <div className="border rounded-md p-3 bg-muted/20">
-                        <div className="flex items-center gap-2 mb-2">
-                            <input type="checkbox" id="isRecurring" name="isRecurring" className="h-4 w-4" onChange={(e) => {
-                                const el = document.getElementById('recurrence-options');
-                                if (el) el.style.display = e.target.checked ? 'block' : 'none';
-                            }} />
-                            <Label htmlFor="isRecurring" className="cursor-pointer font-bold">Répéter (Récurrent)</Label>
+                        {/* Quick time slots */}
+                        <div className="grid grid-cols-6 gap-2">
+                            {TIME_SLOTS.map((slot) => (
+                                <Button
+                                    key={slot.value}
+                                    type="button"
+                                    variant={selectedTime === slot.value ? "default" : "outline"}
+                                    size="sm"
+                                    className={`h-10 ${selectedTime === slot.value ? "ring-2 ring-primary ring-offset-2" : ""}`}
+                                    onClick={() => setSelectedTime(slot.value)}
+                                >
+                                    {slot.label}
+                                </Button>
+                            ))}
                         </div>
 
-                        <div id="recurrence-options" className="hidden space-y-3 mt-3">
-                            <div className="space-y-2">
-                                <Label>Jours de rdv :</Label>
-                                <div className="flex flex-wrap gap-2 text-sm">
-                                    {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((d, i) => {
-                                        // JS getDay: Sun=0, Mon=1...Sat=6. 
-                                        // Array: Mon(1), Tue(2)... Sun(0) mapping needs care.
-                                        // Let's use English names mapping to the Server Action keys
-                                        // 0=Lun -> Monday (index 1 in Date.getDay)
-                                        // 1=Mar -> Tuesday (2)
-                                        // ...
-                                        // 6=Dim -> Sunday (0)
-                                        const names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                                        return (
-                                            <div key={names[i]} className="flex items-center space-x-1">
-                                                <input type="checkbox" name={`day_${names[i]}`} id={`d_${names[i]}`} />
-                                                <label htmlFor={`d_${names[i]}`}>{d}</label>
-                                            </div>
-                                        )
-                                    })}
+                        {/* Custom time input */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">ou personnalisé:</span>
+                            <Input
+                                type="time"
+                                value={selectedTime}
+                                onChange={(e) => setSelectedTime(e.target.value)}
+                                className="w-32 h-10"
+                            />
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* 3. CLIENT SELECTION */}
+                    <div className="space-y-3">
+                        <Label className="flex items-center gap-2 text-base font-semibold">
+                            <User className="h-4 w-4 text-primary" />
+                            Client
+                        </Label>
+
+                        {/* Search input */}
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="text"
+                                placeholder="Rechercher un client..."
+                                value={clientSearch}
+                                onChange={(e) => setClientSearch(e.target.value)}
+                                className="pl-10 h-12"
+                            />
+                            {clientSearch && (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+                                    onClick={() => setClientSearch("")}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+
+                        {/* Client list */}
+                        <div className="max-h-48 overflow-y-auto space-y-2 rounded-lg border p-2">
+                            {filteredClients.length === 0 ? (
+                                <p className="text-center py-4 text-muted-foreground text-sm">
+                                    Aucun client trouvé
+                                </p>
+                            ) : (
+                                filteredClients.slice(0, 10).map((client) => (
+                                    <button
+                                        key={client.id}
+                                        type="button"
+                                        className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all ${selectedClient === client.id
+                                                ? "bg-primary/10 border-2 border-primary"
+                                                : "hover:bg-muted border-2 border-transparent"
+                                            }`}
+                                        onClick={() => {
+                                            setSelectedClient(client.id)
+                                            setClientSearch("")
+                                        }}
+                                    >
+                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                            {client.name.substring(0, 2).toUpperCase()}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium truncate">{client.name}</p>
+                                            <p className="text-xs text-muted-foreground truncate">
+                                                {client.phone || client.email || "Pas de contact"}
+                                            </p>
+                                        </div>
+                                        {selectedClient === client.id && (
+                                            <Check className="h-5 w-5 text-primary shrink-0" />
+                                        )}
+                                    </button>
+                                ))
+                            )}
+                            {filteredClients.length > 10 && (
+                                <p className="text-center text-xs text-muted-foreground py-2">
+                                    +{filteredClients.length - 10} autres clients...
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* 4. COACH SELECTION */}
+                    <div className="space-y-3">
+                        <Label className="flex items-center gap-2 text-base font-semibold">
+                            <Dumbbell className="h-4 w-4 text-primary" />
+                            Coach
+                        </Label>
+
+                        <div className="grid gap-2">
+                            {coaches.map((coach) => (
+                                <button
+                                    key={coach.id}
+                                    type="button"
+                                    className={`flex items-center gap-3 p-3 rounded-lg text-left transition-all ${selectedCoach === coach.id
+                                            ? "bg-primary/10 border-2 border-primary"
+                                            : "hover:bg-muted border-2 border-transparent"
+                                        }`}
+                                    onClick={() => setSelectedCoach(coach.id)}
+                                >
+                                    <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold">
+                                        {(coach.name || coach.email).substring(0, 2).toUpperCase()}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-medium">{coach.name || coach.email}</p>
+                                        <p className="text-xs text-muted-foreground">Coach</p>
+                                    </div>
+                                    {selectedCoach === coach.id && (
+                                        <Check className="h-5 w-5 text-primary" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* 5. SERVICE SELECTION */}
+                    <div className="space-y-3">
+                        <Label className="flex items-center gap-2 text-base font-semibold">
+                            <Euro className="h-4 w-4 text-primary" />
+                            Prestation
+                        </Label>
+
+                        <div className="grid gap-2">
+                            {services.map((service) => (
+                                <button
+                                    key={service.id}
+                                    type="button"
+                                    className={`flex items-center justify-between p-4 rounded-xl text-left transition-all ${selectedService === service.id
+                                            ? "bg-primary text-primary-foreground shadow-lg"
+                                            : "bg-muted/50 hover:bg-muted"
+                                        }`}
+                                    onClick={() => setSelectedService(service.id)}
+                                >
+                                    <div>
+                                        <p className="font-semibold">{service.name}</p>
+                                        <p className={`text-sm ${selectedService === service.id ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                                            {service.durationMin} min
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xl font-bold">{service.price}€</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* 6. NOTES (Optional) */}
+                    <div className="space-y-3">
+                        <Label className="flex items-center gap-2 text-base font-semibold">
+                            Notes (optionnel)
+                        </Label>
+                        <Textarea
+                            placeholder="Informations complémentaires..."
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            className="min-h-[80px] resize-none"
+                        />
+                    </div>
+
+                    {/* 7. RECURRENCE (Collapsible) */}
+                    <div className="space-y-3">
+                        <button
+                            type="button"
+                            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                            onClick={() => setShowRecurrence(!showRecurrence)}
+                        >
+                            <Repeat className="h-4 w-4" />
+                            {showRecurrence ? "Masquer" : "Ajouter"} une récurrence
+                            <ChevronRight className={`h-4 w-4 transition-transform ${showRecurrence ? "rotate-90" : ""}`} />
+                        </button>
+
+                        {showRecurrence && (
+                            <Card className="p-4 space-y-4 bg-muted/30">
+                                <div className="space-y-2">
+                                    <Label className="text-sm">Répéter chaque:</Label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, i) => {
+                                            const names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                                            return (
+                                                <label key={names[i]} className="flex items-center gap-1.5 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        name={`day_${names[i]}`}
+                                                        className="h-4 w-4 rounded"
+                                                    />
+                                                    <span className="text-sm">{day}</span>
+                                                </label>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm">Jusqu'au:</Label>
+                                    <Input
+                                        type="date"
+                                        name="recurrenceEndDate"
+                                        min={selectedDate}
+                                        className="h-10"
+                                    />
+                                </div>
+                                <input type="hidden" name="isRecurring" value="on" />
+                            </Card>
+                        )}
+                    </div>
+
+                    {/* SUMMARY & SUBMIT */}
+                    {isFormComplete && (
+                        <Card className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                <Check className="h-4 w-4 text-primary" />
+                                Récapitulatif
+                            </h4>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Date</span>
+                                    <span className="font-medium capitalize">{formatDisplayDate(selectedDate)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Heure</span>
+                                    <span className="font-medium">{selectedTime}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Client</span>
+                                    <span className="font-medium">{selectedClientObj?.name}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Coach</span>
+                                    <span className="font-medium">{selectedCoachObj?.name || selectedCoachObj?.email}</span>
+                                </div>
+                                <Separator className="my-2" />
+                                <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground">{selectedServiceObj?.name}</span>
+                                    <span className="font-bold text-lg text-primary">{selectedServiceObj?.price}€</span>
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="recurrenceEndDate">Jusqu'au (Date de fin)</Label>
-                                <Input id="recurrenceEndDate" name="recurrenceEndDate" type="text" placeholder="JJ/MM/AAAA" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="notes">Notes</Label>
-                        <Textarea id="notes" name="notes" placeholder="Détails spécifiques..." />
-                    </div>
-
-                    {state?.error && (
-                        <p className="text-sm text-red-500 font-medium">{state.error}</p>
-                    )}
-                    {state?.message && (
-                        <p className="text-sm text-green-600 font-medium">{state.message}</p>
+                        </Card>
                     )}
 
-                    <Button type="submit" className="w-full" disabled={isPending}>
-                        {isPending ? "Planification..." : "Planifier"}
+                    <Button
+                        type="submit"
+                        className="w-full h-14 text-lg font-bold gap-2"
+                        disabled={isPending || !isFormComplete}
+                    >
+                        {isPending ? (
+                            "Planification..."
+                        ) : (
+                            <>
+                                <CalendarPlus className="h-5 w-5" />
+                                Planifier la séance
+                            </>
+                        )}
                     </Button>
                 </form>
             </SheetContent>

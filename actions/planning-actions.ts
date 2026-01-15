@@ -19,6 +19,7 @@ const UpdateSessionSchema = z.object({
     date: z.string().refine((val) => !isNaN(Date.parse(val)), "Date invalide"),
     time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Heure invalide"),
     coachId: z.string().min(1, "Coach requis"),
+    status: z.enum(['PLANNED', 'CONFIRMED', 'DONE', 'CANCELLED']).optional(),
     notes: z.string().optional(),
 })
 
@@ -151,6 +152,7 @@ export async function updateSession(prevState: any, formData: FormData) {
         date: formData.get("date"),
         time: formData.get("time"),
         coachId: formData.get("coachId"),
+        status: formData.get("status"),
         notes: formData.get("notes"),
     })
 
@@ -158,7 +160,7 @@ export async function updateSession(prevState: any, formData: FormData) {
         return { error: validatedFields.error.issues[0].message }
     }
 
-    const { sessionId, date, time, coachId, notes } = validatedFields.data
+    const { sessionId, date, time, coachId, status, notes } = validatedFields.data
     const dateTimeString = `${date}T${time}:00`
     const sessionDate = new Date(dateTimeString)
 
@@ -168,6 +170,7 @@ export async function updateSession(prevState: any, formData: FormData) {
             data: {
                 date: sessionDate,
                 coachId,
+                status,
                 notes,
             }
         })
