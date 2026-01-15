@@ -70,7 +70,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
     ])
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 md:pb-0 h-[calc(100vh-6rem)] flex flex-col">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 md:pb-0 min-h-0 flex-1 flex flex-col">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">Planning</h2>

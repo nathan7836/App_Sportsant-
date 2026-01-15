@@ -16,8 +16,17 @@ export default function LoginPage() {
     )
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-muted/20">
-            <Card className="w-full max-w-sm shadow-xl">
+        <div
+            className="flex items-center justify-center min-h-[100dvh] bg-gradient-to-br from-background via-muted/30 to-background"
+            style={{
+                padding: "1rem",
+                paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))",
+                paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))",
+                paddingLeft: "calc(1rem + env(safe-area-inset-left, 0px))",
+                paddingRight: "calc(1rem + env(safe-area-inset-right, 0px))",
+            }}
+        >
+            <Card className="w-full max-w-sm shadow-2xl border-border/50 backdrop-blur-sm">
                 <CardHeader className="text-center space-y-2">
                     <div className="flex justify-center mb-4">
                         <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">

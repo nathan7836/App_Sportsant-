@@ -7,17 +7,15 @@ import { prisma } from "@/lib/prisma"
 import { getGlobalSettings } from "@/actions/settings-actions"
 import { GoalDialog } from "@/components/settings/goal-dialog"
 import { redirect } from "next/navigation"
+import { ReminderAlerts } from "@/components/reminders/ReminderAlerts"
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  console.log("Rendering Home Page...");
   const session = await auth()
   if (!session) {
-    console.log("No session, redirecting...");
     redirect("/login")
   }
-  console.log("Session found:", session.user?.email);
 
   // Fetch Settings (Goal)
   const settings = await getGlobalSettings()
@@ -29,15 +27,33 @@ export default async function Home() {
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
   endOfMonth.setHours(23, 59, 59, 999)
 
+  // Get upcoming sessions for next 7 days
+  const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+
   // Fetch Data
-  const [sessions, clientCount] = await Promise.all([
+  const [sessions, clientCount, upcomingSessions, pendingValidation] = await Promise.all([
     prisma.session.findMany({
       where: {
         date: { gte: startOfMonth, lte: endOfMonth }
       },
       include: { service: true, client: true }
     }),
-    prisma.client.count()
+    prisma.client.count(),
+    prisma.session.findMany({
+      where: {
+        date: { gte: now, lte: next7Days },
+        coachId: session.user?.role === 'COACH' ? session.user.id : undefined
+      },
+      include: { service: true, client: true },
+      orderBy: { date: 'asc' }
+    }),
+    prisma.session.count({
+      where: {
+        date: { lte: now },
+        status: 'PLANNED',
+        coachId: session.user?.role === 'COACH' ? session.user.id : undefined
+      }
+    })
   ])
 
   // Calculate KPI
@@ -52,6 +68,13 @@ export default async function Home() {
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 md:pb-0">
+
+      {/* Reminder Alerts */}
+      <ReminderAlerts
+        upcomingSessions={upcomingSessions}
+        pendingValidationCount={pendingValidation}
+        userRole={session.user?.role || 'COACH'}
+      />
 
       {/* Hero Section */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-purple-600 to-indigo-600 p-6 sm:p-8 text-primary-foreground shadow-2xl">

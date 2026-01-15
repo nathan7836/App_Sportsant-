@@ -1,13 +1,14 @@
 'use client'
 
 import { User } from "@prisma/client"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Trash2, CheckCircle, Mail } from "lucide-react"
+import { Trash2, CheckCircle, Eye, Star } from "lucide-react"
 import { useActionState } from "react"
 import { deleteCoach } from "@/actions/coach-actions"
+import Link from "next/link"
 
 interface CoachListProps {
     coaches: User[]
@@ -23,46 +24,61 @@ function CoachCard({ coach, isAdmin }: { coach: User, isAdmin: boolean }) {
             <CardHeader className="relative pt-0 pb-2">
                 <Avatar className="h-24 w-24 absolute -top-12 left-6 border-4 border-background shadow-md">
                     <AvatarImage src={`https://i.pravatar.cc/150?u=${coach.email}`} />
-                    <AvatarFallback>{coach.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
+                        {coach.name?.substring(0, 2).toUpperCase() || "CO"}
+                    </AvatarFallback>
                 </Avatar>
                 <div className="pt-14 px-2">
                     <div className="flex justify-between items-start">
                         <div>
                             <h3 className="font-bold text-xl">{coach.name}</h3>
-                            <p className="text-sm text-primary font-medium">{coach.email}</p>
+                            <p className="text-sm text-primary font-medium truncate max-w-[180px]">{coach.email}</p>
                         </div>
-                        <div className="flex items-center bg-amber-100 dark:bg-amber-900/30 text-amber-600 px-2 py-1 rounded-lg text-xs font-bold shadow-sm">
-                            COACH
-                        </div>
+                        <Badge className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 border-0 gap-1">
+                            <Star className="h-3 w-3" /> Coach
+                        </Badge>
                     </div>
                 </div>
             </CardHeader>
             <CardContent className="px-6 py-4 space-y-4">
                 <div className="space-y-2">
-                    <div className="text-center border-t border-b border-border/40 py-2">
-                        <span className="block text-xs text-muted-foreground uppercase font-bold">Status</span>
-                        <span className="font-bold text-emerald-600 text-xs flex items-center justify-center gap-1 mt-1">
-                            <CheckCircle className="h-3 w-3" /> Actif
+                    <div className="text-center border-t border-b border-border/40 py-3">
+                        <span className="block text-xs text-muted-foreground uppercase font-bold mb-1">Status</span>
+                        <span className="font-bold text-emerald-600 text-sm flex items-center justify-center gap-1">
+                            <CheckCircle className="h-4 w-4" /> Actif
                         </span>
                     </div>
                 </div>
             </CardContent>
-            {isAdmin && (
-                <CardFooter className="justify-end border-t bg-muted/20 p-2">
+            <CardFooter className="justify-between border-t bg-muted/20 p-3 gap-2">
+                <Button size="sm" variant="outline" className="flex-1 gap-2" asChild>
+                    <Link href={`/coaches/${coach.id}`}>
+                        <Eye className="h-4 w-4" /> Voir profil
+                    </Link>
+                </Button>
+                {isAdmin && (
                     <form action={deleteAction} onSubmit={(e) => { if (!confirm("Supprimer ce coach ?")) e.preventDefault() }}>
                         <input type="hidden" name="userId" value={coach.id} />
                         <Button size="sm" variant="destructive" disabled={isPending}>
-                            <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+                            <Trash2 className="h-4 w-4" />
                         </Button>
                     </form>
-                </CardFooter>
-            )}
+                )}
+            </CardFooter>
         </Card>
     )
 }
 
 export function CoachList({ coaches, currentUserRole }: CoachListProps) {
     const isAdmin = currentUserRole === "ADMIN"
+
+    if (coaches.length === 0) {
+        return (
+            <div className="text-center py-12">
+                <p className="text-muted-foreground">Aucun coach enregistré</p>
+            </div>
+        )
+    }
 
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

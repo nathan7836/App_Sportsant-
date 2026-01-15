@@ -14,72 +14,72 @@ def diagnose():
         client.connect(host, username=username, password=password)
         print("Connected.")
         
-        # Search for .git directory to find the actual repo root
-        print("Searching for .git directory...")
-        cmd = "find /root /var/www /home /opts -type d -name '.git' -prune 2>/dev/null | head -n 1"
-        stdin, stdout, stderr = client.exec_command(cmd)
-        git_dir = stdout.read().decode().strip()
-        print(f"Git directory found: {git_dir}")
+        # 1. Docker Status and Mounts
+        print("\n--- DOCKER CONTAINERS & MOUNTS ---")
+        cmd_docker = "docker ps --format '{{.Names}}' | grep sportsante"
+        stdin, stdout, stderr = client.exec_command(cmd_docker)
+        containers = stdout.read().decode().strip().split('\n')
         
-        project_dir = ""
-        if git_dir:
-            project_dir = git_dir.replace("/.git", "")
-        
-        print(f"Determined Directory: {project_dir}")
-        
-        if project_dir:
-            print(f"Project directory: {project_dir}")
-            
-            # SFTP Upload
-            sftp = client.open_sftp()
-            
-            local_files = [
-                r"c:\Projet Dev entreprise\App-Sportsante\components\ui\sheet.tsx",
-                r"c:\Projet Dev entreprise\App-Sportsante\components\ui\dialog.tsx",
-                r"c:\Projet Dev entreprise\App-Sportsante\app\admin\users\create-user-form.tsx"
-            ]
-            
-            for local_path in local_files:
-                filename = local_path.split("\\")[-1]
-                if "create-user-form.tsx" in filename:
-                     remote_path = f"{project_dir}/app/admin/users/{filename}"
+        for container in containers:
+            if container:
+                print(f"\nInspecting container: {container}")
+                # Get mounts
+                cmd_mount = f"docker inspect {container} --format '{{{{json .Mounts}}}}'"
+                stdin, stdout, stderr = client.exec_command(cmd_mount)
+                print(f"Mounts: {stdout.read().decode().strip()}")
+                
+                # Try to grep specific UI text inside container
+                print(f"Searching for UI text in {container}...")
+                cmd_grep = f"docker exec {container} grep -ri 'Assurance RCP' . 2>/dev/null"
+                stdin, stdout, stderr = client.exec_command(cmd_grep)
+                res = stdout.read().decode().strip()
+                if res:
+                    print(f"FOUND IN {container}:\n{res}")
                 else:
-                     remote_path = f"{project_dir}/components/ui/{filename}"
-                print(f"Uploading {filename} to {remote_path}...")
-                try:
-                    sftp.put(local_path, remote_path)
-                    print("Upload successful.")
-                except Exception as e:
-                    print(f"Failed to upload {filename}: {e}")
-            
-            sftp.close()
-            
-            # Rebuild
-            cmds = [
-                f"cd {project_dir}",
-                "docker compose down",
-                "docker compose up -d --build"
-            ]
-            full_cmd = " && ".join(cmds)
-            print(f"Executing rebuild: {full_cmd}")
-            stdin, stdout, stderr = client.exec_command(full_cmd)
-            
-            # Stream output
-            while True:
-                line = stdout.readline()
-                if not line: break
-                print(line.strip())
-            
-            err = stderr.read().decode()
-            if err:
-                print("--- STDERR ---")
-                print(err)
-        else:
-            print("Could not locate git repository on VPS to upload to.")
+                    print(f"Not found in {container}")
 
-            
+        # 2. Local File search on host (very specific labels from the screenshot)
+        labels = ["Gérer le Coach", "Etat du dossier", "Diplômes / Certifications", "Assurance RCP"]
+        print("\n--- SEARCHING FOR SPECIFIC LABELS ON VPS HOST ---")
+        for label in labels:
+            print(f"Searching for '{label}'...")
+            cmd = f"grep -ri '{label}' /root /home /var/www --exclude-dir=node_modules 2>/dev/null"
+            stdin, stdout, stderr = client.exec_command(cmd)
+            res = stdout.read().decode().strip()
+            if res:
+                print(f"MATCH FOUND: {res}")
+            else:
+                print(f"No match for '{label}'")
+
+        # Check title in app-sportsante
+        p_dir2 = "/root/app-sportsante"
+        print(f"\n--- CHECKING TITLE IN {p_dir2} ---")
+        cmd_title2 = f"grep -ri 'SportSanté' {p_dir2} --exclude-dir=node_modules 2>/dev/null"
+        stdin, stdout, stderr = client.exec_command(cmd_title2)
+        print(stdout.read().decode())
+        
+        # Check if CoachProfile exists in homecare (under any path)
+        print(f"\n--- SEARCHING FOR CoachProfile in /root/homecare ---")
+        cmd_find3 = "find /root/homecare -name '*CoachProfile*' 2>/dev/null"
+        stdin, stdout, stderr = client.exec_command(cmd_find3)
+        print(stdout.read().decode())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     except Exception as e:
-        print(e)
+        print(f"Error: {e}")
     finally:
         client.close()
 

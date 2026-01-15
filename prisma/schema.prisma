@@ -47,11 +47,21 @@ model CoachDetails {
   id          String   @id @default(cuid())
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   hourlyRate  Float    @default(0)
-  diplomes    String?  // URLs or text
-  rcpInsurance String? // URL or text
-  skills      String?  // JSON or comma separated
+  diplomes    String?  // Description des diplomes
+  diplomesFile String? // Fichier diplome (base64 ou path)
+  rcpInsurance String? // Description assurance RCP
+  rcpFile     String?  // Fichier assurance RCP
+  contrat     String?  // Description contrat
+  contratFile String?  // Fichier contrat
+  skills      String?  // Competences (comma separated)
+  specialties String?  // Specialisations
+  bio         String?  // Biographie du coach
+  phone       String?  // Telephone pro
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Service {
@@ -91,10 +101,15 @@ model Session {
 model Absence {
   id        String   @id @default(cuid())
   coachId   String
-  coach     User     @relation(fields: [coachId], references: [id])
+  coach     User     @relation(fields: [coachId], references: [id], onDelete: Cascade)
   startDate DateTime
   endDate   DateTime
   reason    String?
+  type      String   @default("CONGE") // CONGE, MALADIE, AUTRE
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Measurement {
@@ -113,3 +128,8 @@ model Measurement {
   updatedAt   DateTime @updatedAt
 }
 
+model GlobalSettings {
+  id          String   @id @default("default")
+  monthlyGoal Float    @default(2000)
+  updatedAt   DateTime @updatedAt
+}

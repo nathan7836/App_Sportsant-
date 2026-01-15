@@ -8,12 +8,13 @@ services:
     container_name: app-sportsante
     restart: always
     ports:
-      - "3000:3000"
+      - "80:3000"
     environment:
       - DATABASE_URL=file:/app/dev.db
-      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=http://82.165.195.155
       - AUTH_SECRET=change_me_in_prod_env
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_PUBLIC_APP_URL=http://82.165.195.155
+      - AUTH_TRUST_HOST=true
     volumes:
       # Persist the SQLite database
       - ./dev.db:/app/dev.db

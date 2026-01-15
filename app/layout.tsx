@@ -26,7 +26,8 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, // Often good for native-like apps
+  userScalable: false,
+  viewportFit: 'cover', // REQUIRED for safe-area-inset to work on iOS
 }
 
 export const dynamic = 'force-dynamic';
@@ -59,8 +60,16 @@ export default async function RootLayout({
           <AppSidebar userRole={userRole} />
           {session?.user?.id && <AndroidNotificationManager userId={session.user.id} />}
           <MobileFab />
-          <main className="flex-1 flex flex-col h-screen overflow-hidden bg-background">
-            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 justify-between bg-card/50 backdrop-blur-sm sticky top-0 z-10 transition-all duration-300">
+          <main className="flex-1 flex flex-col min-h-[100dvh] bg-background">
+            <header
+              className="flex shrink-0 items-center gap-2 border-b px-4 justify-between bg-card/80 backdrop-blur-md sticky top-0 z-40 transition-all duration-300"
+              style={{
+                paddingTop: "calc(0.875rem + env(safe-area-inset-top, 0px))",
+                paddingBottom: "0.875rem",
+                paddingLeft: "calc(1rem + env(safe-area-inset-left, 0px))",
+                paddingRight: "calc(1rem + env(safe-area-inset-right, 0px))",
+              }}
+            >
               <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1 hidden md:flex" />
                 <div className="h-4 w-[1px] bg-border mx-2 hidden md:block" />
@@ -68,14 +77,22 @@ export default async function RootLayout({
               </div>
               <div className="flex items-center gap-2">
                 {/* Placeholder for Profile/Notifs */}
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs">A</div>
+                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">A</div>
               </div>
             </header>
-            <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 space-y-6">
+            <div
+              className="flex-1 overflow-y-auto overscroll-contain space-y-6"
+              style={{
+                padding: "1rem",
+                paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px))",
+                paddingLeft: "calc(1rem + env(safe-area-inset-left, 0px))",
+                paddingRight: "calc(1rem + env(safe-area-inset-right, 0px))",
+              }}
+            >
               {children}
             </div>
           </main>
-          <Toaster />
+          <Toaster position="top-center" toastOptions={{ className: "!mb-0" }} />
         </SidebarProvider>
       </body>
     </html>
