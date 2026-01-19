@@ -13,7 +13,7 @@ def full_deploy():
     host = "82.165.195.155"
     username = "root"
     password = "Tl7Z7Wfa"
-    local_dir = r"c:\Projet Dev entreprise\App-Sportsante"
+    local_dir = os.getcwd()
     remote_dir = "/root/homecare"
     
     print(f"Connexion à {host}...")

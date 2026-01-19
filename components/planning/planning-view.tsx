@@ -1,12 +1,14 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Clock, MapPin, Plus } from "lucide-react"
 import { useState } from "react"
 import { EditSessionSheet } from "./edit-session-sheet"
 import { User } from "@prisma/client"
+import { formatDisplayDate } from "@/lib/date-utils"
+import { getStatusStyle, getStatusLabel } from "@/lib/constants"
 
 interface SessionWithDetails {
     id: string
@@ -38,41 +40,15 @@ export function PlanningView({ sessions, coaches, currentDate }: PlanningViewPro
     // Helper to format hour
     const formatHour = (h: number) => `${h}:00`
 
-    // Format date for display (e.g., "Mardi 12 Décembre")
-    const formattedDate = new Intl.DateTimeFormat('fr-FR', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long'
-    }).format(currentDate)
+    // Use centralized date formatting
+    const displayDate = formatDisplayDate(currentDate)
 
-    // Capitalize first letter
-    const displayDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)
-
-    // Group sessions by hour (simple implementation for daily view)
-    const getSessionForHour = (hour: number) => {
-        return sortedSessions.find(s => {
+    // Group sessions by hour (returns all sessions for a given hour)
+    const getSessionsForHour = (hour: number) => {
+        return sortedSessions.filter(s => {
             const d = new Date(s.date)
             return d.getHours() === hour
         })
-    }
-
-    // Helper for status badge styles
-    const getStatusStyle = (status: string) => {
-        switch (status) {
-            case "CONFIRMED": return "bg-emerald-500 text-white hover:bg-emerald-600"
-            case "DONE": return "bg-blue-500 text-white hover:bg-blue-600"
-            case "CANCELLED": return "bg-rose-100 text-rose-700 border border-rose-200 hover:bg-rose-200"
-            default: return "bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200" // PLANNED
-        }
-    }
-
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case "CONFIRMED": return "Confirmée"
-            case "DONE": return "Terminée"
-            case "CANCELLED": return "Annulée"
-            default: return "Planifiée"
-        }
     }
 
     const handleSessionClick = (session: SessionWithDetails) => {
@@ -82,50 +58,57 @@ export function PlanningView({ sessions, coaches, currentDate }: PlanningViewPro
 
     return (
         <>
-            <Card className="lg:col-span-5 border-border/50 shadow-sm flex flex-col overflow-hidden bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm h-full">
-                <CardHeader className="pb-4 shrink-0 border-b border-border/40">
+            <Card className="col-span-full md:col-span-3 lg:col-span-5 border-border/50 shadow-sm flex flex-col overflow-hidden bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm h-full">
+                <CardHeader className="pb-3 sm:pb-4 shrink-0 border-b border-border/40 px-4 sm:px-6">
                     <div className="flex justify-between items-center">
-                        <CardTitle>{displayDate}</CardTitle>
-                        <Badge variant="secondary" className="font-normal">{sessions.length} Séances</Badge>
+                        <CardTitle className="text-base sm:text-lg">{displayDate}</CardTitle>
+                        <Badge variant="secondary" className="font-normal text-xs">{sessions.length} Séance{sessions.length > 1 ? 's' : ''}</Badge>
                     </div>
                 </CardHeader>
-                <ScrollArea className="flex-1 p-6">
-                    <div className="space-y-6">
+                <ScrollArea className="flex-1 p-3 sm:p-6">
+                    <div className="space-y-4 sm:space-y-6">
                         {timeSlots.map((hour) => {
-                            const session = getSessionForHour(hour)
-                            const isCancelled = session?.status === "CANCELLED"
+                            const hourSessions = getSessionsForHour(hour)
 
                             return (
-                                <div key={hour} className="flex gap-4 group min-h-[100px]">
-                                    <div className="w-14 text-right text-sm text-muted-foreground font-medium pt-2">
+                                <div key={hour} className="flex gap-2 sm:gap-4 group min-h-[80px] sm:min-h-[100px]">
+                                    <div className="w-10 sm:w-14 text-right text-xs sm:text-sm text-muted-foreground font-medium pt-2">
                                         {formatHour(hour)}
                                     </div>
-                                    <div className="flex-1 border-b border-border/50 pb-6 group-last:border-0 relative">
-                                        {session ? (
-                                            <div
-                                                onClick={() => handleSessionClick(session)}
-                                                className={`relative z-10 border-l-4 ${isCancelled ? 'border-l-rose-400 bg-rose-50' : 'border-l-primary bg-primary/5'} rounded-r-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer`}
-                                            >
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <h4 className={`font-bold ${isCancelled ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                                                            {session.service.name}
-                                                        </h4>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {session.client.name} avec {session.coach.name || session.coach.email}
-                                                        </p>
-                                                    </div>
-                                                    <Badge className={`pointer-events-none ${getStatusStyle(session.status)} border-0 shadow-none font-semibold`}>
-                                                        {getStatusLabel(session.status)}
-                                                    </Badge>
-                                                </div>
-                                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-3">
-                                                    <span className="flex items-center"><Clock className="h-3 w-3 mr-1" /> {session.service.durationMin} min</span>
-                                                    <span className="flex items-center"><MapPin className="h-3 w-3 mr-1" /> Domicile Client</span>
-                                                </div>
+                                    <div className="flex-1 border-b border-border/50 pb-4 sm:pb-6 group-last:border-0 relative">
+                                        {hourSessions.length > 0 ? (
+                                            <div className="space-y-2 sm:space-y-3">
+                                                {hourSessions.map((session) => {
+                                                    const isCancelled = session.status === "CANCELLED"
+                                                    return (
+                                                        <div
+                                                            key={session.id}
+                                                            onClick={() => handleSessionClick(session)}
+                                                            className={`relative z-10 border-l-4 ${isCancelled ? 'border-l-rose-400 bg-rose-50 dark:bg-rose-900/20' : 'border-l-primary bg-primary/5'} rounded-r-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98]`}
+                                                        >
+                                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
+                                                                <div className="min-w-0 flex-1">
+                                                                    <h4 className={`font-bold text-sm sm:text-base truncate ${isCancelled ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                                                        {session.service.name}
+                                                                    </h4>
+                                                                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                                                                        {session.client.name} avec {session.coach.name || session.coach.email}
+                                                                    </p>
+                                                                </div>
+                                                                <Badge className={`pointer-events-none ${getStatusStyle(session.status)} border-0 shadow-none font-semibold text-xs shrink-0 self-start`}>
+                                                                    {getStatusLabel(session.status)}
+                                                                </Badge>
+                                                            </div>
+                                                            <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground mt-2 sm:mt-3">
+                                                                <span className="flex items-center"><Clock className="h-3 w-3 mr-1" /> {session.service.durationMin} min</span>
+                                                                <span className="flex items-center hidden sm:flex"><MapPin className="h-3 w-3 mr-1" /> Domicile</span>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })}
                                             </div>
                                         ) : (
-                                            <div className="h-full w-full border border-dashed border-border/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer mx-4">
+                                            <div className="h-full w-full border border-dashed border-border/40 rounded-lg items-center justify-center hidden sm:flex opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                                                 <span className="text-xs text-muted-foreground flex items-center">
                                                     <Plus className="h-3 w-3 mr-1" /> Créneau disponible
                                                 </span>

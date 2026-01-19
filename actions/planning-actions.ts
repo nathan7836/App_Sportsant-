@@ -119,6 +119,7 @@ export async function createSession(prevState: any, formData: FormData) {
             }
 
             revalidatePath("/planning")
+            revalidatePath("/")
             return { success: true, message: `${sessionsToCreate.length} séances créées.` }
 
         } else {
@@ -134,6 +135,7 @@ export async function createSession(prevState: any, formData: FormData) {
                 }
             })
             revalidatePath("/planning")
+            revalidatePath("/")
             return { success: true }
         }
 
@@ -175,6 +177,7 @@ export async function updateSession(prevState: any, formData: FormData) {
             }
         })
         revalidatePath("/planning")
+        revalidatePath("/")
         return { success: true, message: "Séance mise à jour" }
     } catch (error) {
         console.error("Failed to update session:", error)
@@ -194,6 +197,7 @@ export async function deleteSession(prevState: any, formData: FormData) {
             where: { id: sessionId }
         })
         revalidatePath("/planning")
+        revalidatePath("/")
         return { success: true, message: "Séance supprimée" }
     } catch (error) {
         console.error("Failed to delete session:", error)

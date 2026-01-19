@@ -25,28 +25,14 @@ import { createSession } from "@/actions/planning-actions"
 import { useActionState, useState, useEffect, useMemo } from "react"
 import { Client, User as UserType, Service } from "@prisma/client"
 import { toast } from "sonner"
+import { TIME_SLOTS, DAYS_OF_WEEK } from "@/lib/constants"
+import { formatDisplayDate } from "@/lib/date-utils"
 
 interface NewSessionSheetProps {
     clients: Client[]
     coaches: UserType[]
     services: Service[]
 }
-
-// Créneaux horaires courants
-const TIME_SLOTS = [
-    { label: "8h", value: "08:00" },
-    { label: "9h", value: "09:00" },
-    { label: "10h", value: "10:00" },
-    { label: "11h", value: "11:00" },
-    { label: "12h", value: "12:00" },
-    { label: "14h", value: "14:00" },
-    { label: "15h", value: "15:00" },
-    { label: "16h", value: "16:00" },
-    { label: "17h", value: "17:00" },
-    { label: "18h", value: "18:00" },
-    { label: "19h", value: "19:00" },
-    { label: "20h", value: "20:00" },
-]
 
 export function NewSessionSheet({ clients, coaches, services }: NewSessionSheetProps) {
     const [open, setOpen] = useState(false)
@@ -104,16 +90,6 @@ export function NewSessionSheet({ clients, coaches, services }: NewSessionSheetP
             toast.error(state.error)
         }
     }, [state])
-
-    // Format date for display
-    const formatDisplayDate = (dateStr: string) => {
-        const date = new Date(dateStr)
-        return date.toLocaleDateString('fr-FR', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long'
-        })
-    }
 
     // Check if form is complete
     const isFormComplete = selectedDate && selectedTime && selectedCoach && selectedClient && selectedService
@@ -174,15 +150,15 @@ export function NewSessionSheet({ clients, coaches, services }: NewSessionSheetP
                             Heure
                         </Label>
 
-                        {/* Quick time slots */}
-                        <div className="grid grid-cols-6 gap-2">
+                        {/* Quick time slots - Responsive grid */}
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                             {TIME_SLOTS.map((slot) => (
                                 <Button
                                     key={slot.value}
                                     type="button"
                                     variant={selectedTime === slot.value ? "default" : "outline"}
                                     size="sm"
-                                    className={`h-10 ${selectedTime === slot.value ? "ring-2 ring-primary ring-offset-2" : ""}`}
+                                    className={`h-11 sm:h-10 text-sm ${selectedTime === slot.value ? "ring-2 ring-primary ring-offset-2" : ""}`}
                                     onClick={() => setSelectedTime(slot.value)}
                                 >
                                     {slot.label}
@@ -377,20 +353,17 @@ export function NewSessionSheet({ clients, coaches, services }: NewSessionSheetP
                             <Card className="p-4 space-y-4 bg-muted/30">
                                 <div className="space-y-2">
                                     <Label className="text-sm">Répéter chaque:</Label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, i) => {
-                                            const names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                                            return (
-                                                <label key={names[i]} className="flex items-center gap-1.5 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        name={`day_${names[i]}`}
-                                                        className="h-4 w-4 rounded"
-                                                    />
-                                                    <span className="text-sm">{day}</span>
-                                                </label>
-                                            )
-                                        })}
+                                    <div className="flex flex-wrap gap-3">
+                                        {DAYS_OF_WEEK.map((day) => (
+                                            <label key={day.key} className="flex items-center gap-1.5 cursor-pointer min-h-[44px]">
+                                                <input
+                                                    type="checkbox"
+                                                    name={`day_${day.key}`}
+                                                    className="h-5 w-5 rounded"
+                                                />
+                                                <span className="text-sm">{day.label}</span>
+                                            </label>
+                                        ))}
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -399,7 +372,7 @@ export function NewSessionSheet({ clients, coaches, services }: NewSessionSheetP
                                         type="date"
                                         name="recurrenceEndDate"
                                         min={selectedDate}
-                                        className="h-10"
+                                        className="h-12"
                                     />
                                 </div>
                                 <input type="hidden" name="isRecurring" value="on" />

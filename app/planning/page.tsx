@@ -4,9 +4,9 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { NewSessionSheet } from "@/components/planning/new-session-sheet"
 import { PlanningView } from "@/components/planning/planning-view"
+import { PlanningCalendar } from "@/components/planning/planning-calendar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar } from "@/components/ui/calendar"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays } from "lucide-react"
 import Link from "next/link"
@@ -77,20 +77,20 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
                     <p className="text-muted-foreground">Organisation des séances et workflow mensuel.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center bg-muted/50 rounded-lg p-1 mr-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                    <div className="flex items-center bg-muted/50 rounded-lg p-1">
+                        <Button variant="ghost" size="icon" className="h-10 w-10 sm:h-9 sm:w-9" asChild>
                             <Link href={`/planning?date=${toISODate(prevDate)}`}>
-                                <ChevronLeft className="h-4 w-4" />
+                                <ChevronLeft className="h-5 w-5 sm:h-4 sm:w-4" />
                             </Link>
                         </Button>
-                        <Button variant="ghost" className="h-8 text-sm font-medium px-3" asChild>
+                        <Button variant="ghost" className="h-10 sm:h-9 text-sm font-medium px-3" asChild>
                             <Link href="/planning">
                                 Aujourd'hui
                             </Link>
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                        <Button variant="ghost" size="icon" className="h-10 w-10 sm:h-9 sm:w-9" asChild>
                             <Link href={`/planning?date=${toISODate(nextDate)}`}>
-                                <ChevronRight className="h-4 w-4" />
+                                <ChevronRight className="h-5 w-5 sm:h-4 sm:w-4" />
                             </Link>
                         </Button>
                     </div>
@@ -108,19 +108,14 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
                 </AlertDescription>
             </Alert>
 
-            <div className="grid lg:grid-cols-7 gap-6 flex-1 overflow-hidden min-h-0">
-                {/* Sidebar Calendar */}
-                <Card className="lg:col-span-2 h-fit border-border/50 shadow-sm">
+            <div className="grid md:grid-cols-5 lg:grid-cols-7 gap-4 md:gap-6 flex-1 overflow-hidden min-h-0">
+                {/* Sidebar Calendar - Caché sur mobile */}
+                <Card className="hidden md:block md:col-span-2 lg:col-span-2 h-fit border-border/50 shadow-sm">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" /> Calendrier</CardTitle>
                     </CardHeader>
                     <CardContent className="flex justify-center pb-4">
-                        <Calendar
-                            mode="single"
-                            className="rounded-md border-0"
-                            selected={currentDate}
-                        // Note: full calendar nav requires client component with router logic, for now purely visual or could link
-                        />
+                        <PlanningCalendar currentDate={currentDate} />
                     </CardContent>
                     <div className="px-6 pb-6 space-y-3">
                         <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Légende Statuts</div>

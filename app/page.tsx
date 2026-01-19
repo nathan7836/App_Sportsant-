@@ -8,6 +8,7 @@ import { getGlobalSettings } from "@/actions/settings-actions"
 import { GoalDialog } from "@/components/settings/goal-dialog"
 import { redirect } from "next/navigation"
 import { ReminderAlerts } from "@/components/reminders/ReminderAlerts"
+import { WidgetSync } from "@/components/widget-sync"
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,15 @@ export default async function Home() {
       where: {
         date: { gte: startOfMonth, lte: endOfMonth }
       },
-      include: { service: true, client: true }
+      include: {
+        service: true,
+        client: true,
+        coach: {
+          include: {
+            coachDetails: true
+          }
+        }
+      }
     }),
     prisma.client.count(),
     prisma.session.findMany({
@@ -57,7 +66,22 @@ export default async function Home() {
   ])
 
   // Calculate KPI
-  const revenue = sessions.reduce((acc, s) => acc + s.service.price, 0)
+  let revenue = 0
+  let totalCost = 0
+
+  sessions.forEach(session => {
+    // Revenue
+    revenue += session.service.price
+
+    // Cost (Coach Hourly Rate * Duration in Hours)
+    // Default duration is usually in service, or use 1 hour if missing
+    // Assuming service.durationMin exists based on schema
+    const durationHours = (session.service.durationMin || 60) / 60
+    const hourlyRate = session.coach?.coachDetails?.hourlyRate || 0
+    totalCost += durationHours * hourlyRate
+  })
+
+  const profit = revenue - totalCost
   const sessionsCount = sessions.length
 
   // Progress
@@ -75,6 +99,8 @@ export default async function Home() {
         pendingValidationCount={pendingValidation}
         userRole={session.user?.role || 'COACH'}
       />
+
+      <WidgetSync nextSession={upcomingSessions[0]} />
 
       {/* Hero Section */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-purple-600 to-indigo-600 p-6 sm:p-8 text-primary-foreground shadow-2xl">
@@ -103,21 +129,34 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Stats Grid - 2 cols on mobile for compactness */}
-      <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
+      {/* Stats Grid - Responsive avec breakpoints progressifs */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
         <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Chiffre d'Affaires</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Chiffre d'Affaires Brut</CardTitle>
             <div className="p-1.5 sm:p-2 rounded-full bg-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform">
               <Euro className="h-3 w-3 sm:h-4 sm:w-4" />
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-xl sm:text-2xl font-bold">€ {revenue.toLocaleString()}</div>
-            <p className="text-[10px] sm:text-xs font-medium flex items-center mt-1 text-emerald-500">
+            <p className="text-xs sm:text-xs font-medium flex items-center mt-1 text-emerald-500">
               <ArrowUpRight className="h-3 w-3 mr-1" />
-              {percentage}%
+              {percentage}% Obj.
             </p>
+          </CardContent>
+        </Card>
+
+        <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Bénéfices Net</CardTitle>
+            <div className="p-1.5 sm:p-2 rounded-full bg-indigo-500/10 text-indigo-500 group-hover:scale-110 transition-transform">
+              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">€ {profit.toLocaleString()}</div>
+            <p className="text-xs sm:text-xs text-muted-foreground mt-1">Après salaire coachs</p>
           </CardContent>
         </Card>
 
@@ -130,7 +169,7 @@ export default async function Home() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-xl sm:text-2xl font-bold">{clientCount}</div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Base active</p>
+            <p className="text-xs sm:text-xs text-muted-foreground mt-1">Base active</p>
           </CardContent>
         </Card>
 
@@ -143,7 +182,7 @@ export default async function Home() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-xl sm:text-2xl font-bold">{sessionsCount}</div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Ce mois-ci</p>
+            <p className="text-xs sm:text-xs text-muted-foreground mt-1">Ce mois-ci</p>
           </CardContent>
         </Card>
 
@@ -156,7 +195,7 @@ export default async function Home() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-xl sm:text-2xl font-bold">€ {(Math.max(0, monthlyGoal - revenue)).toLocaleString()}</div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Pour obj.</p>
+            <p className="text-xs sm:text-xs text-muted-foreground mt-1">Pour obj.</p>
           </CardContent>
         </Card>
       </div>
@@ -235,17 +274,17 @@ export default async function Home() {
               </svg>
 
               <div className="text-center z-10">
-                <span className="text-5xl font-extrabold text-primary tracking-tighter">{percentage}%</span>
+                <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-primary tracking-tighter">{percentage}%</span>
                 <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest mt-1">Atteint</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 sm:gap-8 w-full mt-10">
               <div className="text-center p-3 sm:p-4 rounded-2xl bg-background shadow-sm">
-                <p className="text-muted-foreground text-[10px] sm:text-xs uppercase font-bold tracking-wider">Réalisé</p>
+                <p className="text-muted-foreground text-xs sm:text-xs uppercase font-bold tracking-wider">Réalisé</p>
                 <p className="text-xl sm:text-2xl font-bold text-foreground">€ {revenue.toLocaleString()}</p>
               </div>
               <div className="text-center p-3 sm:p-4 rounded-2xl bg-background shadow-sm">
-                <p className="text-muted-foreground text-[10px] sm:text-xs uppercase font-bold tracking-wider">Objectif</p>
+                <p className="text-muted-foreground text-xs sm:text-xs uppercase font-bold tracking-wider">Objectif</p>
                 <div className="flex items-center justify-center gap-2">
                   <p className="text-xl sm:text-2xl font-bold text-muted-foreground">€ {monthlyGoal.toLocaleString()}</p>
                 </div>
