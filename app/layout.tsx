@@ -34,8 +34,8 @@ export const dynamic = 'force-dynamic';
 
 
 import { auth } from "@/auth"
-
-// ...
+import { getMyNotifications, getUnreadNotificationsCount } from "@/actions/session-request-actions"
+import { NotificationBell } from "@/components/notifications/NotificationBell"
 
 export default async function RootLayout({
   children,
@@ -44,9 +44,15 @@ export default async function RootLayout({
 }>) {
   let session
   let userRole
+  let notifications: any[] = []
+  let unreadCount = 0
   try {
     session = await auth()
     userRole = session?.user?.role
+    if (session?.user) {
+      notifications = await getMyNotifications()
+      unreadCount = await getUnreadNotificationsCount()
+    }
   } catch (e) {
     console.error("Auth failed during build:", e)
   }
@@ -76,8 +82,12 @@ export default async function RootLayout({
                 <span className="font-semibold text-sm">Tableau de Bord</span>
               </div>
               <div className="flex items-center gap-2">
-                {/* Placeholder for Profile/Notifs */}
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">A</div>
+                {session?.user && (
+                  <NotificationBell notifications={notifications} unreadCount={unreadCount} />
+                )}
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                  {session?.user?.name?.substring(0, 1).toUpperCase() || "U"}
+                </div>
               </div>
             </header>
             <div

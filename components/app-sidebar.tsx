@@ -2,7 +2,7 @@
 "use client"
 
 import Link from "next/link"
-import { Calendar, CreditCard, Home, Settings, Users, User, Euro, Dumbbell, Lock } from "lucide-react"
+import { Calendar, CreditCard, Home, Settings, Users, User, Euro, Dumbbell, Lock, CalendarClock } from "lucide-react"
 
 import {
     Sidebar,
@@ -91,14 +91,24 @@ export function AppSidebar({ userRole, ...props }: React.ComponentProps<typeof S
                             ))}
 
                             {userRole === "ADMIN" && (
-                                <SidebarMenuItem key="Admin Users">
-                                    <SidebarMenuButton asChild tooltip="Gestion Utilisateurs" className="hover:bg-primary/10 hover:text-primary transition-colors duration-200">
-                                        <Link href="/admin/users" onClick={() => setOpenMobile(false)}>
-                                            <Lock />
-                                            <span className="font-medium">Gestion Utilisateurs</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
+                                <>
+                                    <SidebarMenuItem key="Admin Users">
+                                        <SidebarMenuButton asChild tooltip="Gestion Utilisateurs" className="hover:bg-primary/10 hover:text-primary transition-colors duration-200">
+                                            <Link href="/admin/users" onClick={() => setOpenMobile(false)}>
+                                                <Lock />
+                                                <span className="font-medium">Gestion Utilisateurs</span>
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem key="Admin Requests">
+                                        <SidebarMenuButton asChild tooltip="Demandes" className="hover:bg-primary/10 hover:text-primary transition-colors duration-200">
+                                            <Link href="/admin/requests" onClick={() => setOpenMobile(false)}>
+                                                <CalendarClock />
+                                                <span className="font-medium">Demandes</span>
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </>
                             )}
                         </SidebarMenu>
                     </SidebarGroupContent>

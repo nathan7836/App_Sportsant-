@@ -126,7 +126,13 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
                 </Card>
 
                 {/* Agenda View */}
-                <PlanningView sessions={sessions} coaches={coaches} currentDate={currentDate} />
+                <PlanningView
+                    sessions={sessions}
+                    coaches={coaches}
+                    currentDate={currentDate}
+                    userRole={session.user?.role}
+                    currentUserId={session.user?.id}
+                />
             </div>
         </div>
     )
