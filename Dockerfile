@@ -44,9 +44,20 @@ COPY --from=builder /app/public ./public
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-# Copy database and schema for runtime usage (if needed by prisma client inside standalone)
+# Copy prisma schema and CLI for runtime migrations
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/dev.db ./dev.db
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+# Note: dev.db is mounted via docker-compose volume, not copied during build
+
+# Create entrypoint script to run migrations before starting
+RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
+    echo 'echo "Running database migrations..."' >> /app/entrypoint.sh && \
+    echo 'node node_modules/prisma/build/index.js db push --accept-data-loss --skip-generate 2>/dev/null || echo "Migration skipped or failed"' >> /app/entrypoint.sh && \
+    echo 'echo "Starting server..."' >> /app/entrypoint.sh && \
+    echo 'exec node server.js' >> /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
 
 USER nextjs
 
@@ -56,4 +67,4 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["/app/entrypoint.sh"]

@@ -24,20 +24,25 @@ def full_deploy():
         client.connect(host, username=username, password=password)
         print("Connecté.")
         
-        # 1. Stop and remove existing app
+        # 1. Stop existing app
         print("\n--- ARRÊT DES CONTENEURS EXISTANTS ---")
-        stdin, stdout, stderr = client.exec_command(f"cd {remote_dir} && docker compose down -v")
+        stdin, stdout, stderr = client.exec_command(f"cd {remote_dir} && docker compose down 2>/dev/null || true")
         wait_for_command(stdin, stdout, stderr)
-        
+
         # Global cleanup
         client.exec_command("docker ps -aq --filter name=sportsante --filter name=homecare | xargs -r docker stop | xargs -r docker rm")
-        client.exec_command("fuser -k 80/tcp")
-        
-        # 2. Wipe old directories
+        client.exec_command("fuser -k 80/tcp 2>/dev/null || true")
+
+        # 2. Backup database before cleanup
+        print("\n--- SAUVEGARDE DE LA BASE DE DONNÉES ---")
+        stdin, stdout, stderr = client.exec_command(f"cp {remote_dir}/dev.db /tmp/dev.db.backup 2>/dev/null || echo 'No existing database to backup'")
+        wait_for_command(stdin, stdout, stderr)
+
+        # 3. Wipe old directories (except database)
         print("\n--- NETTOYAGE DES RÉPERTOIRES ---")
         stdin, stdout, stderr = client.exec_command("rm -rf /root/homecare /root/app-sportsante")
         wait_for_command(stdin, stdout, stderr)
-        
+
         stdin, stdout, stderr = client.exec_command(f"mkdir -p {remote_dir}")
         wait_for_command(stdin, stdout, stderr)
         
@@ -64,12 +69,14 @@ def full_deploy():
         sftp.put(tar_gz_path, f"{remote_dir}/{tar_gz_name}")
         sftp.close()
         
-        # 5. Extract and Rebuild
-        print("\n--- EXTRACTION ET RECONSTRUCTION DOCKER ---")
+        # 5. Extract and Restore database
+        print("\n--- EXTRACTION ET RESTAURATION ---")
         cmds = [
             f"cd {remote_dir}",
             f"tar -xzf {tar_gz_name}",
             f"rm {tar_gz_name}",
+            # Restore database backup if it exists
+            "cp /tmp/dev.db.backup ./dev.db 2>/dev/null || echo 'No database backup to restore'",
             "docker compose up -d --build"
         ]
         full_cmd = " && ".join(cmds)

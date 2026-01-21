@@ -10,27 +10,30 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
         data-slot="input"
         className={cn(
           // --- Layout & Base ---
-          "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 shadow-sm transition-all duration-200",
+          "flex h-11 w-full rounded-xl border-2 border-input bg-background/50 px-4 py-2.5 shadow-sm transition-all duration-200",
 
-          // --- Typographie (CRUCIAL POUR IOS) ---
-          // text-base (16px) sur mobile pour bloquer le zoom automatique
-          // md:text-sm (14px) sur ordinateur pour la finesse
-          "text-base md:text-sm",
+          // --- Typography (CRUCIAL FOR iOS) ---
+          // text-base (16px) on mobile to prevent auto-zoom
+          // md:text-sm (14px) on desktop for refinement
+          "text-base md:text-sm font-medium",
 
           // --- File Input Styling ---
-          "file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground",
+          "file:border-0 file:bg-transparent file:text-sm file:font-semibold file:text-primary",
 
           // --- Placeholder & Colors ---
-          "placeholder:text-muted-foreground",
+          "placeholder:text-muted-foreground/60",
 
-          // --- Focus States (Ring animé) ---
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          // --- Focus States ---
+          "focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:bg-background",
+
+          // --- Hover State ---
+          "hover:border-border/80 hover:bg-background/80",
 
           // --- Disabled State ---
-          "disabled:cursor-not-allowed disabled:opacity-50",
+          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/50",
 
           // --- Error States (Accessibility) ---
-          "aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20 dark:aria-[invalid=true]:ring-destructive/40",
+          "aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-destructive/20",
 
           className
         )}
