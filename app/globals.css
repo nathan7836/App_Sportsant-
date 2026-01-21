@@ -190,6 +190,8 @@
     overscroll-behavior: none;
     height: 100%;
     scroll-behavior: smooth;
+    /* Background color fills safe areas (notch, home indicator) */
+    background: var(--background);
   }
 
   body {
