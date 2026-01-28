@@ -31,7 +31,7 @@ interface Notification {
     message: string
     link?: string | null
     read: boolean
-    createdAt: Date
+    createdAt: Date | string
 }
 
 interface NotificationBellProps {
@@ -78,7 +78,7 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
         }
     }
 
-    const formatTimeAgo = (date: Date) => {
+    const formatTimeAgo = (date: Date | string) => {
         const now = new Date()
         const diff = now.getTime() - new Date(date).getTime()
         const minutes = Math.floor(diff / 60000)
@@ -137,9 +137,8 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
                             {localNotifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`p-4 hover:bg-muted/50 transition-colors ${
-                                        !notification.read ? 'bg-primary/5' : ''
-                                    }`}
+                                    className={`p-4 hover:bg-muted/50 transition-colors ${!notification.read ? 'bg-primary/5' : ''
+                                        }`}
                                 >
                                     <div className="flex gap-3">
                                         <div className="shrink-0 mt-0.5">

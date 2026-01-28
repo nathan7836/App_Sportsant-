@@ -3,52 +3,45 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { z } from "zod"
 
-const MeasurementSchema = z.object({
-    clientId: z.string().min(1),
-    weight: z.coerce.number().min(0).optional(),
-    fatMass: z.coerce.number().min(0).optional(),
-    muscleMass: z.coerce.number().min(0).optional(),
-    date: z.string().optional(), // YYYY-MM-DD
-    notes: z.string().optional(),
-})
-
-export async function addMeasurement(prevState: any, formData: FormData) {
+export async function addMeasurement(data: {
+    clientId: string
+    weight?: number | null
+    fatMass?: number | null
+    muscleMass?: number | null
+    date?: string
+}) {
     const session = await auth()
     if (!session) return { error: "Non autorisé" }
 
-    const validated = MeasurementSchema.safeParse({
-        clientId: formData.get("clientId"),
-        weight: formData.get("weight"),
-        fatMass: formData.get("fatMass"),
-        muscleMass: formData.get("muscleMass"),
-        date: formData.get("date"),
-        notes: formData.get("notes"),
-    })
+    const { clientId, weight, fatMass, muscleMass, date } = data
 
-    if (!validated.success) {
-        return { error: "Données invalides" }
+    if (!clientId) {
+        return { error: "Client ID manquant" }
     }
 
-    const { clientId, weight, fatMass, muscleMass, date, notes } = validated.data
-
     try {
-        await prisma.measurement.create({
+        const measurement = await prisma.measurement.create({
             data: {
                 clientId,
-                weight: weight || null,
-                fatMass: fatMass || null,
-                muscleMass: muscleMass || null,
+                weight: weight ?? null,
+                fatMass: fatMass ?? null,
+                muscleMass: muscleMass ?? null,
                 date: date ? new Date(date) : new Date(),
-                notes,
             }
         })
         revalidatePath("/clients")
-        return { success: true, message: "Mesure ajoutée" }
-    } catch (error) {
-        console.error("Failed to add measurement:", error)
-        return { error: "Erreur lors de l'ajout" }
+        revalidatePath(`/clients/${clientId}`)
+        return { success: true, message: "Mesure ajoutée", data: measurement }
+    } catch (error: any) {
+        console.error("Erreur ajout mesure:", error)
+        if (error?.code === 'P2003') {
+            return { error: "Client introuvable." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de l'ajout. Réessayez." }
     }
 }
 

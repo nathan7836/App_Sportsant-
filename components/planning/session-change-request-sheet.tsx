@@ -9,9 +9,11 @@ import { Card } from "@/components/ui/card"
 import {
     Sheet,
     SheetContent,
-    SheetDescription,
     SheetHeader,
+    SheetBody,
+    SheetFooter,
     SheetTitle,
+    SheetDescription,
 } from "@/components/ui/sheet"
 import {
     AlertTriangle,
@@ -98,8 +100,8 @@ export function SessionChangeRequestSheet({ session, open, onOpenChange }: Sessi
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-                <SheetHeader className="pb-4">
+            <SheetContent>
+                <SheetHeader>
                     <SheetTitle className="flex items-center gap-2">
                         <CalendarClock className="h-5 w-5 text-primary" />
                         Demande de modification
@@ -109,8 +111,9 @@ export function SessionChangeRequestSheet({ session, open, onOpenChange }: Sessi
                     </SheetDescription>
                 </SheetHeader>
 
+                <SheetBody>
                 {/* Session Info Card */}
-                <Card className="p-4 bg-muted/30 mb-6">
+                <Card className="p-3 bg-muted/30 mb-4">
                     <div className="flex items-center gap-3">
                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                             <User className="h-6 w-6 text-primary" />
@@ -144,7 +147,7 @@ export function SessionChangeRequestSheet({ session, open, onOpenChange }: Sessi
                 )}
 
                 {canRequest && (
-                    <form action={formAction} className="space-y-6">
+                    <form action={formAction} id="request-change-form" className="space-y-4">
                         <input type="hidden" name="sessionId" value={session.id} />
                         <input type="hidden" name="type" value={requestType} />
                         <input type="hidden" name="newDate" value={newDate} />
@@ -254,32 +257,29 @@ export function SessionChangeRequestSheet({ session, open, onOpenChange }: Sessi
                         </div>
 
                         {/* Info */}
-                        <Card className="p-4 bg-muted/30">
-                            <div className="flex items-start gap-3">
-                                <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-                                <p className="text-sm text-muted-foreground">
-                                    Votre demande sera envoyée à l'administration pour validation.
-                                    Vous recevrez une notification dès qu'une décision sera prise.
+                        <Card className="p-3 bg-muted/30">
+                            <div className="flex items-start gap-2">
+                                <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                                <p className="text-xs text-muted-foreground">
+                                    Votre demande sera envoyée pour validation.
                                 </p>
                             </div>
                         </Card>
+                    </form>
+                )}
+                </SheetBody>
 
-                        {/* Submit */}
+                {canRequest && (
+                    <SheetFooter>
                         <Button
                             type="submit"
-                            className="w-full h-14 text-lg font-bold gap-2"
+                            form="request-change-form"
+                            className="w-full h-11 font-semibold gap-2"
                             disabled={isPending || !reason || (requestType === 'RESCHEDULE' && (!newDate || !newTime))}
                         >
-                            {isPending ? (
-                                "Envoi en cours..."
-                            ) : (
-                                <>
-                                    <Send className="h-5 w-5" />
-                                    Envoyer la demande
-                                </>
-                            )}
+                            {isPending ? "Envoi..." : <><Send className="h-4 w-4" /> Envoyer la demande</>}
                         </Button>
-                    </form>
+                    </SheetFooter>
                 )}
             </SheetContent>
         </Sheet>

@@ -16,6 +16,7 @@ import { useActionState } from "react"
 import { NewClientSheet } from "@/components/clients/new-client-sheet"
 import { Trash2 } from "lucide-react"
 import { ClientMeasurements } from "@/components/clients/client-measurements"
+import { ClientDetailSheet } from "@/components/clients/client-detail-sheet"
 
 interface ClientListProps {
     clients: Client[]
@@ -60,7 +61,7 @@ export function ClientList({ clients, currentUserRole }: ClientListProps) {
                     </div>
                 </div>
             </SheetTrigger>
-            <ClientDetailSheet client={client} />
+            <ClientDetailSheet client={client} isAdmin={isAdmin} />
         </Sheet>
     )
 
@@ -137,7 +138,7 @@ export function ClientList({ clients, currentUserRole }: ClientListProps) {
                                         </TableCell>
                                     </TableRow>
                                 </SheetTrigger>
-                                <ClientDetailSheet client={client} />
+                                <ClientDetailSheet client={client} isAdmin={isAdmin} />
                             </Sheet>
                         ))}
                     </TableBody>
@@ -147,108 +148,3 @@ export function ClientList({ clients, currentUserRole }: ClientListProps) {
     )
 }
 
-// Extracted Client Detail Sheet Component
-function ClientDetailSheet({ client }: { client: Client }) {
-    return (
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-            <SheetHeader className="mb-6">
-                <div className="flex items-center gap-4">
-                    <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-4 border-muted">
-                        <AvatarFallback>{client.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <SheetTitle className="text-xl sm:text-2xl font-bold">{client.name}</SheetTitle>
-                        <SheetDescription>Fiche client</SheetDescription>
-                    </div>
-                </div>
-            </SheetHeader>
-
-            <Tabs defaultValue="infos" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6 bg-muted/50 p-1 rounded-xl">
-                    <TabsTrigger value="infos" className="rounded-lg text-xs sm:text-sm">Infos</TabsTrigger>
-                    <TabsTrigger value="health" className="rounded-lg text-xs sm:text-sm">Santé</TabsTrigger>
-                    <TabsTrigger value="tracking" className="rounded-lg text-xs sm:text-sm">Suivi</TabsTrigger>
-                </TabsList>
-
-                {/* 1. Basic Info */}
-                <TabsContent value="infos" className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="phone">Téléphone</Label>
-                            <Input id="phone" value={client.phone || ""} readOnly className="bg-muted/50 border-0 h-12" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="birth">Date de naissance</Label>
-                            <Input id="birth" value={client.birthDate ? new Date(client.birthDate).toLocaleDateString() : ""} readOnly className="bg-muted/50 border-0 h-12" />
-                        </div>
-                        <div className="sm:col-span-2 space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" value={client.email || ""} readOnly className="bg-muted/50 border-0 h-12" />
-                        </div>
-                        <div className="sm:col-span-2 space-y-2">
-                            <Label htmlFor="address">Adresse Domicile</Label>
-                            <Input id="address" value={client.address || ""} readOnly className="bg-muted/50 border-0 h-12" />
-                        </div>
-                    </div>
-                </TabsContent>
-
-                {/* 2. Health & Safety */}
-                <TabsContent value="health" className="space-y-5">
-                    <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/20 space-y-3">
-                        <h4 className="font-semibold text-rose-700 dark:text-rose-400 flex items-center gap-2">
-                            <AlertCircle className="h-4 w-4" /> Urgence
-                        </h4>
-                        <div className="space-y-2">
-                            <Label className="text-rose-700/80">Personne à prévenir</Label>
-                            <Input value={client.emergencyContact || ""} readOnly className="bg-white/50 dark:bg-black/20 border-rose-200 h-12" />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Métriques</Label>
-                        <div className="flex flex-col gap-4">
-                            <div className="p-3 bg-muted/30 rounded-lg w-full text-center border">
-                                <span className="block text-xs text-muted-foreground uppercase font-bold">Taille</span>
-                                <span className="font-mono text-lg font-bold">{client.height || "-"} cm</span>
-                            </div>
-                            <ClientMeasurements clientId={client.id} />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Pathologies / Antécédents</Label>
-                        <Textarea
-                            className="min-h-[100px] bg-muted/30 resize-none font-medium"
-                            defaultValue={client.pathology || ""}
-                            readOnly
-                        />
-                    </div>
-                </TabsContent>
-
-                {/* 3. Tracking & Goals */}
-                <TabsContent value="tracking" className="space-y-4">
-                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-3">
-                        <h4 className="font-semibold text-primary flex items-center gap-2">
-                            <Target className="h-4 w-4" /> Objectif Principal
-                        </h4>
-                        <Input value={client.goals || ""} readOnly className="bg-white/50 dark:bg-black/20 font-bold text-base sm:text-lg h-12" />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Remarques</Label>
-                        <Textarea
-                            className="min-h-[150px] bg-amber-50/50 dark:bg-amber-900/10 border-amber-200/50"
-                            defaultValue={client.notes || ""}
-                            readOnly
-                        />
-                    </div>
-                </TabsContent>
-            </Tabs>
-
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <Button className="flex-1 h-12 bg-primary text-primary-foreground shadow-lg">Enregistrer</Button>
-                <Button variant="outline" className="flex-1 h-12">Historique Séances</Button>
-            </div>
-        </SheetContent>
-    )
-}

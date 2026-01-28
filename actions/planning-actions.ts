@@ -139,9 +139,15 @@ export async function createSession(prevState: any, formData: FormData) {
             return { success: true }
         }
 
-    } catch (error) {
-        console.error("Failed to create session:", error)
-        return { error: "Erreur lors de la création." }
+    } catch (error: any) {
+        console.error("Erreur création séance:", error)
+        if (error?.code === 'P2003') {
+            return { error: "Client, coach ou service invalide." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la création. Réessayez." }
     }
 }
 
@@ -179,9 +185,15 @@ export async function updateSession(prevState: any, formData: FormData) {
         revalidatePath("/planning")
         revalidatePath("/")
         return { success: true, message: "Séance mise à jour" }
-    } catch (error) {
-        console.error("Failed to update session:", error)
-        return { error: "Erreur lors de la modification." }
+    } catch (error: any) {
+        console.error("Erreur modification séance:", error)
+        if (error?.code === 'P2025') {
+            return { error: "Séance introuvable." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la modification. Réessayez." }
     }
 }
 
@@ -199,9 +211,15 @@ export async function deleteSession(prevState: any, formData: FormData) {
         revalidatePath("/planning")
         revalidatePath("/")
         return { success: true, message: "Séance supprimée" }
-    } catch (error) {
-        console.error("Failed to delete session:", error)
-        return { error: "Erreur lors de la suppression." }
+    } catch (error: any) {
+        console.error("Erreur suppression séance:", error)
+        if (error?.code === 'P2025') {
+            return { error: "Séance introuvable." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la suppression. Réessayez." }
     }
 }
 

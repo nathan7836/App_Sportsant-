@@ -136,25 +136,25 @@ export function CoachProfileView({ coach, isAdmin, isOwnProfile }: CoachProfileV
             </Card>
 
             {/* Tabs */}
-            <Tabs defaultValue="infos" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4 h-12 p-1 bg-muted/50 rounded-xl">
-                    <TabsTrigger value="infos" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
-                        <UserIcon className="h-4 w-4" /> Infos
-                    </TabsTrigger>
-                    <TabsTrigger value="documents" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
-                        <FileText className="h-4 w-4" /> Documents
-                    </TabsTrigger>
-                    <TabsTrigger value="absences" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
-                        <Calendar className="h-4 w-4" /> Absences
-                    </TabsTrigger>
-                    <TabsTrigger value="seances" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
-                        <Clock className="h-4 w-4" /> Séances
-                    </TabsTrigger>
-                </TabsList>
+            <form action={handleSubmit}>
+                <Tabs defaultValue="infos" className="space-y-6">
+                    <TabsList className="grid w-full grid-cols-4 h-12 p-1 bg-muted/50 rounded-xl">
+                        <TabsTrigger value="infos" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
+                            <UserIcon className="h-4 w-4" /> Infos
+                        </TabsTrigger>
+                        <TabsTrigger value="documents" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
+                            <FileText className="h-4 w-4" /> Documents
+                        </TabsTrigger>
+                        <TabsTrigger value="absences" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
+                            <Calendar className="h-4 w-4" /> Absences
+                        </TabsTrigger>
+                        <TabsTrigger value="seances" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
+                            <Clock className="h-4 w-4" /> Séances
+                        </TabsTrigger>
+                    </TabsList>
 
-                {/* Infos Tab */}
-                <TabsContent value="infos">
-                    <form action={handleSubmit}>
+                    {/* Infos Tab */}
+                    <TabsContent value="infos">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -251,10 +251,9 @@ export function CoachProfileView({ coach, isAdmin, isOwnProfile }: CoachProfileV
                                 )}
                             </CardContent>
                         </Card>
-                    </form>
-                </TabsContent>
+                    </TabsContent>
 
-                {/* Documents Tab */}
+                    {/* Documents Tab */}
                 <TabsContent value="documents">
                     <div className="grid md:grid-cols-3 gap-6">
                         {/* Diplomes */}
@@ -332,8 +331,8 @@ export function CoachProfileView({ coach, isAdmin, isOwnProfile }: CoachProfileV
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className={`p-2 rounded-lg ${session.status === 'DONE' ? 'bg-emerald-100 text-emerald-600' :
-                                                        session.status === 'CANCELLED' ? 'bg-rose-100 text-rose-600' :
-                                                            'bg-blue-100 text-blue-600'
+                                                    session.status === 'CANCELLED' ? 'bg-rose-100 text-rose-600' :
+                                                        'bg-blue-100 text-blue-600'
                                                     }`}>
                                                     {session.status === 'DONE' ? <CheckCircle className="h-5 w-5" /> :
                                                         session.status === 'CANCELLED' ? <XCircle className="h-5 w-5" /> :
@@ -367,7 +366,25 @@ export function CoachProfileView({ coach, isAdmin, isOwnProfile }: CoachProfileV
                         </CardContent>
                     </Card>
                 </TabsContent>
-            </Tabs>
+
+                {/* Bouton de sauvegarde global en mode édition */}
+                {isEditing && (
+                    <div className="flex gap-3 pt-4 border-t">
+                        <Button type="submit" disabled={isPending} className="flex-1">
+                            {isPending ? "Enregistrement..." : "Sauvegarder toutes les modifications"}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsEditing(false)}
+                            className="flex-1"
+                        >
+                            Annuler
+                        </Button>
+                    </div>
+                )}
+                </Tabs>
+            </form>
         </>
     )
 }
@@ -465,9 +482,16 @@ function DocumentCard({
                                 className="h-9 text-sm"
                             />
                         </div>
-                        <Button variant="outline" size="sm" className="w-full gap-2" type="button">
-                            <Upload className="h-4 w-4" /> Télécharger un fichier
+                        <Button variant="outline" size="sm" className="w-full gap-2" type="button" onClick={() => document.getElementById(fileFieldName)?.click()}>
+                            <Upload className="h-4 w-4" /> {fileUrl ? "Remplacer le fichier" : "Télécharger un fichier"}
                         </Button>
+                        <Input
+                            id={fileFieldName}
+                            name={fileFieldName}
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        />
                     </div>
                 )}
             </CardContent>

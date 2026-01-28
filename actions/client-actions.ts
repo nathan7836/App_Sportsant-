@@ -50,9 +50,15 @@ export async function createClient(prevState: any, formData: FormData) {
         })
         revalidatePath("/clients")
         return { success: true, message: "Client ajouté" }
-    } catch (error) {
-        console.error(error)
-        return { error: "Erreur lors de la création." }
+    } catch (error: any) {
+        console.error("Erreur création client:", error)
+        if (error?.code === 'P2002') {
+            return { error: "Un client avec ces informations existe déjà." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la création. Réessayez." }
     }
 }
 
@@ -92,9 +98,15 @@ export async function updateClient(prevState: any, formData: FormData) {
         })
         revalidatePath("/clients")
         return { success: true, message: "Client modifié" }
-    } catch (error) {
-        console.error(error)
-        return { error: "Erreur lors de la modification." }
+    } catch (error: any) {
+        console.error("Erreur modification client:", error)
+        if (error?.code === 'P2025') {
+            return { error: "Client introuvable." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la modification. Réessayez." }
     }
 }
 
@@ -113,8 +125,17 @@ export async function deleteClient(prevState: any, formData: FormData) {
         })
         revalidatePath("/clients")
         return { success: true, message: "Client supprimé" }
-    } catch (error) {
-        console.error(error)
-        return { error: "Impossible de supprimer (Client lié à des séances ?)" }
+    } catch (error: any) {
+        console.error("Erreur suppression client:", error)
+        if (error?.code === 'P2003' || error?.code === 'P2014') {
+            return { error: "Impossible de supprimer : ce client a des séances associées." }
+        }
+        if (error?.code === 'P2025') {
+            return { error: "Client introuvable." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la suppression. Réessayez." }
     }
 }

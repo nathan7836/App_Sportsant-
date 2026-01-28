@@ -59,16 +59,17 @@ struct SportsanteWidgetEntryView : View {
             }
         }
         .padding()
-        .containerBackground(for: .widget) {
-             LinearGradient(
+        .background(
+            LinearGradient(
                 gradient: Gradient(colors: [
-                    Color(red: 0.55, green: 0.36, blue: 0.96), // #8B5CF6 Primary Violet
-                    Color(red: 0.30, green: 0.11, blue: 0.58)  // #4C1D95 Dark Violet
+                    Color(red: 0.55, green: 0.36, blue: 0.96),
+                    Color(red: 0.30, green: 0.11, blue: 0.58)
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-        }
+        )
+        .widgetBackground(Color(red: 0.55, green: 0.36, blue: 0.96))
     }
 }
 
@@ -128,5 +129,19 @@ struct SportsanteWidget_Previews: PreviewProvider {
     static var previews: some View {
         SportsanteWidgetEntryView(entry: SimpleEntry(date: Date(), data: WidgetData(nextSession: "Crossfit", time: "10:00", coach: "Alex")))
             .previewContext(WidgetPreviewContext(family: .systemSmall))
+    }
+}
+
+// MARK: - Legacy Support Extensions
+extension View {
+    @ViewBuilder
+    func widgetBackground(_ backgroundView: some View) -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.containerBackground(for: .widget) {
+                backgroundView
+            }
+        } else {
+            self.background(backgroundView)
+        }
     }
 }

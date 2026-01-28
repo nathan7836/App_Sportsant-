@@ -18,5 +18,19 @@ services:
     volumes:
       # Persist the SQLite database
       - ./dev.db:/app/dev.db
-      # Optional: Persist uploads if any
-      # - ./public/uploads:/app/public/uploads
+      # Persist uploads
+      - ./public/uploads:/app/public/uploads
+
+  backup-worker:
+    build:
+      context: ./backup_service
+      dockerfile: Dockerfile
+    container_name: app-backup-worker
+    restart: always
+    volumes:
+      # Read-only access to the live DB
+      - ./dev.db:/data/dev.db:ro
+      # Write access to the HOST persistent backup directory
+      # We map a host path that survives deployments
+      - /root/auto_backups:/backups
+

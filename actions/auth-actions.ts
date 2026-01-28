@@ -1,14 +1,13 @@
 
 "use server"
 
-import { signIn } from "@/auth"
+import { signIn, signOut } from "@/auth"
 import { AuthError } from "next-auth"
 import { z } from "zod"
-// import { PrismaClient } from "@prisma/client" // REMOVED
-import { prisma } from "@/lib/prisma" // ADDED
+import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { auth } from "@/auth"
-import { revalidatePath } from "next/cache" // ADDED
+import { revalidatePath } from "next/cache"
 
 // const prisma = new PrismaClient() // REMOVED
 
@@ -78,8 +77,20 @@ export async function createUser(prevState: any, formData: FormData) {
         revalidatePath("/admin/users")
         revalidatePath("/coaches")
         return { message: "Utilisateur créé avec succès !", success: true }
-    } catch (e) {
-        console.error(e)
-        return { message: "Erreur : Cet email est peut-être déjà utilisé." }
+    } catch (e: any) {
+        console.error("Erreur création utilisateur:", e)
+        // Prisma unique constraint error
+        if (e?.code === 'P2002') {
+            return { message: "Cet email est déjà utilisé." }
+        }
+        // Network/connection errors
+        if (e?.code === 'P1001' || e?.code === 'P1002') {
+            return { message: "Erreur de connexion à la base de données. Réessayez." }
+        }
+        return { message: "Erreur lors de la création du compte. Réessayez." }
     }
+}
+
+export async function logout() {
+    await signOut({ redirectTo: "/login" })
 }

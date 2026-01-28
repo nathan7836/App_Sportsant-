@@ -11,18 +11,12 @@ const SettingsSchema = z.object({
 
 export async function getGlobalSettings() {
     try {
-        // Safe check if model exists on client (handles case where prisma generate failed)
-        if (!(prisma as any).globalSettings) {
-            console.warn("GlobalSettings model not found in Prisma Client. Returning default.")
-            return { id: "default", monthlyGoal: 2000.0 }
-        }
-
-        const settings = await (prisma as any).globalSettings.findUnique({
+        const settings = await prisma.globalSettings.findUnique({
             where: { id: "default" }
         })
 
         if (!settings) {
-            return await (prisma as any).globalSettings.create({
+            return await prisma.globalSettings.create({
                 data: { id: "default", monthlyGoal: 2000.0 }
             })
         }
@@ -36,7 +30,7 @@ export async function getGlobalSettings() {
 
 export async function updateMonthlyGoal(formData: FormData) {
     const session = await auth()
-    if (!session || session.user?.role !== "ADMIN") return { error: "Non autorisé" }
+    if (!session) return { error: "Non autorisé" }
 
     const validatedFields = SettingsSchema.safeParse({
         monthlyGoal: formData.get("monthlyGoal"),
@@ -47,11 +41,7 @@ export async function updateMonthlyGoal(formData: FormData) {
     }
 
     try {
-        if (!(prisma as any).globalSettings) {
-            return { error: "Erreur database (schema mismatch). Redémarrez le serveur." }
-        }
-
-        await (prisma as any).globalSettings.upsert({
+        await prisma.globalSettings.upsert({
             where: { id: "default" },
             update: { monthlyGoal: validatedFields.data.monthlyGoal },
             create: { id: "default", monthlyGoal: validatedFields.data.monthlyGoal }
@@ -60,8 +50,11 @@ export async function updateMonthlyGoal(formData: FormData) {
         revalidatePath("/billing")
         revalidatePath("/") // Also dashboard
         return { success: true, message: "Objectif mis à jour" }
-    } catch (error) {
-        console.error("Failed to update settings:", error)
-        return { error: "Erreur lors de la mise à jour." }
+    } catch (error: any) {
+        console.error("Erreur mise à jour paramètres:", error)
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la mise à jour. Réessayez." }
     }
 }

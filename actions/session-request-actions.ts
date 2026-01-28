@@ -99,9 +99,12 @@ export async function createSessionChangeRequest(prevState: any, formData: FormD
         revalidatePath("/admin/requests")
         return { success: true, message: "Demande envoyée avec succès." }
 
-    } catch (error) {
-        console.error("Failed to create request:", error)
-        return { error: "Erreur lors de la création de la demande." }
+    } catch (error: any) {
+        console.error("Erreur création demande:", error)
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la création de la demande. Réessayez." }
     }
 }
 
@@ -183,9 +186,15 @@ export async function respondToSessionChangeRequest(prevState: any, formData: Fo
         revalidatePath("/admin/requests")
         return { success: true, message: `Demande ${statusLabel}.` }
 
-    } catch (error) {
-        console.error("Failed to respond to request:", error)
-        return { error: "Erreur lors du traitement de la demande." }
+    } catch (error: any) {
+        console.error("Erreur traitement demande:", error)
+        if (error?.code === 'P2025') {
+            return { error: "Demande ou séance introuvable." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors du traitement. Réessayez." }
     }
 }
 

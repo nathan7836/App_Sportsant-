@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Calendar, CreditCard, Home, Settings, Users, User, Euro, Dumbbell, Lock, CalendarClock, LogOut, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { LogoutButton } from "@/components/auth/logout-button"
 
 import {
     Sidebar,
@@ -268,12 +269,12 @@ export function AppSidebar({ userRole, ...props }: React.ComponentProps<typeof S
                 className="border-t border-sidebar-border/50"
                 style={{
                     paddingTop: "1rem",
-                    paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))",
+                    paddingBottom: "calc(1rem + var(--safe-area-bottom, env(safe-area-inset-bottom, 0px)))",
                     paddingLeft: "0.5rem",
                     paddingRight: "0.5rem",
                 }}
             >
-                <SidebarMenu>
+                <SidebarMenu className="space-y-1">
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             asChild
@@ -304,6 +305,20 @@ export function AppSidebar({ userRole, ...props }: React.ComponentProps<typeof S
                                 </span>
                             </Link>
                         </SidebarMenuButton>
+                    </SidebarMenuItem>
+
+                    {/* Logout Button */}
+                    <SidebarMenuItem>
+                        <LogoutButton
+                            variant="ghost"
+                            className={cn(
+                                "w-full justify-start h-11 px-3 rounded-xl",
+                                "text-destructive hover:text-destructive hover:bg-destructive/10",
+                                "transition-all duration-200 active:scale-[0.98]"
+                            )}
+                            showIcon={true}
+                            showText={!isCollapsed}
+                        />
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>

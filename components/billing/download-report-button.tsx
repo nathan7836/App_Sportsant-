@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Download } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
+import { toast } from "sonner"
 
 interface DownloadReportButtonProps {
     revenue: number
@@ -14,7 +15,8 @@ interface DownloadReportButtonProps {
 
 export function DownloadReportButton({ revenue, expense, profit, clientData }: DownloadReportButtonProps) {
     const generatePDF = () => {
-        const doc = new jsPDF()
+        try {
+            const doc = new jsPDF()
 
         // Title
         doc.setFontSize(22)
@@ -48,6 +50,11 @@ export function DownloadReportButton({ revenue, expense, profit, clientData }: D
         doc.setTextColor(40, 40, 40)
         doc.text("Détail par Client", 20, 80)
 
+        if (!Array.isArray(clientData) || clientData.length === 0) {
+            toast.error("Aucune donnée à exporter")
+            return
+        }
+
         const tableBody = clientData.map(row => [
             row.client.name,
             row.count,
@@ -74,7 +81,12 @@ export function DownloadReportButton({ revenue, expense, profit, clientData }: D
             doc.text(`Page ${i} / ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10, { align: 'right' })
         }
 
-        doc.save("rapport_financier_sportsante.pdf")
+            doc.save("rapport_financier_sportsante.pdf")
+            toast.success("Rapport PDF téléchargé")
+        } catch (error) {
+            console.error("Erreur génération PDF:", error)
+            toast.error("Erreur lors de la génération du PDF")
+        }
     }
 
     return (

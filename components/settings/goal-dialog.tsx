@@ -25,23 +25,29 @@ export function GoalDialog({ currentGoal }: { currentGoal: number }) {
 
     async function onSubmit(formData: FormData) {
         setIsPending(true)
-        const result = await updateMonthlyGoal(formData)
-        setIsPending(false)
+        try {
+            const result = await updateMonthlyGoal(formData)
 
-        if (result.error) {
-            toast.error(result.error)
-        } else {
-            toast.success("Objectif enregistré !")
-            setOpen(false)
-            router.refresh()
+            if (result.error) {
+                toast.error(result.error)
+            } else if (result.success) {
+                toast.success("Objectif enregistré !")
+                setOpen(false)
+                router.refresh()
+            }
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour:", error)
+            toast.error("Erreur lors de la mise à jour")
+        } finally {
+            setIsPending(false)
         }
     }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6 ml-2 text-muted-foreground hover:text-primary">
-                    <Pencil className="h-3 w-3" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 ml-2 text-muted-foreground hover:text-primary rounded-full">
+                    <Pencil className="h-4 w-4" />
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">

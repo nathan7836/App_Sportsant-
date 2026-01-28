@@ -1,12 +1,12 @@
-
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { User, LogOut, Moon, Sun, Monitor, Bell } from "lucide-react"
+import { User, Moon, Sun, Monitor } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { LogoutButton } from "@/components/auth/logout-button"
 
 export default async function SettingsPage() {
     const session = await auth()
@@ -106,13 +106,21 @@ export default async function SettingsPage() {
                 </Card>
             </div>
 
-            <div className="flex justify-end pt-6">
-                <Button variant="destructive" asChild>
-                    <a href="/api/auth/signout">
-                        <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
-                    </a>
-                </Button>
-            </div>
+            {/* Logout Section */}
+            <Card className="border-destructive/20 bg-destructive/5">
+                <CardHeader>
+                    <CardTitle className="text-destructive">Zone de déconnexion</CardTitle>
+                    <CardDescription>
+                        Déconnectez-vous de votre compte. Vous devrez vous reconnecter pour accéder à l'application.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <LogoutButton
+                        variant="destructive"
+                        className="w-full sm:w-auto"
+                    />
+                </CardContent>
+            </Card>
         </div>
     )
 }

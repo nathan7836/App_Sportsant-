@@ -5,7 +5,13 @@
       "Bash(npx tsc --noEmit)",
       "Bash(python3:*)",
       "Bash(ssh root@82.165.195.155:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git config:*)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx cap sync:*)"
     ]
   }
 }

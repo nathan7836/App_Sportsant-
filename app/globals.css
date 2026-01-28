@@ -9,6 +9,13 @@
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
+
+  /* Dynamic safe area (updated by SafeAreaProvider) */
+  --header-height: calc(56px + var(--safe-area-top));
+  --bottom-nav-height: calc(64px + var(--safe-area-bottom));
+  --content-padding-top: calc(var(--safe-area-top) + 16px);
+  --content-padding-bottom: calc(80px + var(--safe-area-bottom));
+  --keyboard-height: 0px;
 }
 
 @theme inline {
@@ -184,6 +191,8 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Prevent text from overflowing by default */
+    min-width: 0;
   }
 
   html {
@@ -192,6 +201,31 @@
     scroll-behavior: smooth;
     /* Background color fills safe areas (notch, home indicator) */
     background: var(--background);
+  }
+
+  /* ========================================
+     GLOBAL TEXT OVERFLOW PREVENTION
+     Ensures text never overlaps or breaks layouts
+     ======================================== */
+
+  /* All text content should handle overflow gracefully */
+  p, span, h1, h2, h3, h4, h5, h6, a, label {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  /* Prevent flex children from overflowing */
+  .flex > *,
+  [class*="flex-"] > * {
+    min-width: 0;
+  }
+
+  /* Prevent grid children from overflowing */
+  .grid > *,
+  [class*="grid-"] > * {
+    min-width: 0;
+    max-width: 100%;
   }
 
   body {
@@ -208,7 +242,12 @@
   }
 
   /* Heading Typography with Sora */
-  h1, h2, h3, h4, h5, h6,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
   .heading {
     font-family: var(--font-sora), var(--font-jakarta), system-ui, sans-serif;
     font-weight: 700;
@@ -216,10 +255,21 @@
     line-height: 1.2;
   }
 
-  h1 { @apply text-3xl sm:text-4xl md:text-5xl; }
-  h2 { @apply text-2xl sm:text-3xl md:text-4xl; }
-  h3 { @apply text-xl sm:text-2xl; }
-  h4 { @apply text-lg sm:text-xl; }
+  h1 {
+    @apply text-3xl sm:text-4xl md:text-5xl;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl;
+  }
+
+  h4 {
+    @apply text-lg sm:text-xl;
+  }
 
   /* Numbers and stats with mono font */
   .stat-number,
@@ -239,10 +289,12 @@
 
   /* Hide scrollbar on mobile for cleaner look */
   @media (max-width: 768px) {
+
     .hide-scrollbar::-webkit-scrollbar,
     .overflow-auto::-webkit-scrollbar {
       display: none;
     }
+
     .hide-scrollbar,
     .overflow-auto {
       -ms-overflow-style: none;
@@ -256,13 +308,16 @@
       width: 8px;
       height: 8px;
     }
+
     ::-webkit-scrollbar-track {
       background: transparent;
     }
+
     ::-webkit-scrollbar-thumb {
       background: oklch(0.7 0.02 270 / 0.3);
       border-radius: 100px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
       background: oklch(0.6 0.03 270 / 0.5);
     }
@@ -274,29 +329,72 @@
   }
 
   /* Input optimizations for mobile - prevent zoom */
-  input, textarea, select {
+  input,
+  textarea,
+  select {
     font-size: 16px !important;
   }
+
   @media (min-width: 768px) {
-    input, textarea, select {
+
+    input,
+    textarea,
+    select {
       font-size: 14px !important;
     }
   }
 
   /* Touch-friendly tap targets */
-  button, a, [role="button"] {
+  button,
+  a,
+  [role="button"] {
     touch-action: manipulation;
+  }
+
+  /* Keyboard visible - adjust for iOS keyboard */
+  body.keyboard-visible {
+    --keyboard-offset: 300px;
+  }
+
+  /* Smooth transitions for focus states */
+  input,
+  textarea,
+  select,
+  button {
+    transition: all 0.2s ease-out;
+  }
+
+  /* Better focus indication */
+  :focus-visible {
+    outline: none;
+  }
+
+  /* Form labels */
+  label {
+    @apply text-sm font-medium text-foreground/90 mb-1.5 block;
+  }
+
+  /* Error messages */
+  .form-error {
+    @apply text-destructive text-xs mt-1.5 flex items-center gap-1;
+  }
+
+  /* Success messages */
+  .form-success {
+    @apply text-success text-xs mt-1.5 flex items-center gap-1;
   }
 }
 
 /* Premium Utility Classes */
 @layer utilities {
+
   /* Glass effect */
   .glass {
     background: oklch(1 0 0 / 0.7);
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
   }
+
   .dark .glass {
     background: oklch(0.16 0.04 280 / 0.7);
   }
@@ -313,6 +411,7 @@
   .glow-primary {
     box-shadow: 0 0 30px -8px oklch(0.55 0.25 285 / 0.4);
   }
+
   .dark .glow-primary {
     box-shadow: 0 0 40px -10px oklch(0.65 0.24 285 / 0.5);
   }
@@ -321,10 +420,12 @@
   .hover-lift {
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
   }
+
   .hover-lift:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 30px -12px oklch(0 0 0 / 0.2);
   }
+
   .hover-lift:active {
     transform: translateY(0);
   }
@@ -333,6 +434,7 @@
   .card-interactive {
     @apply transition-all duration-300 ease-out;
   }
+
   .card-interactive:hover {
     @apply shadow-xl -translate-y-1;
     box-shadow: 0 20px 40px -15px oklch(0.55 0.15 285 / 0.15);
@@ -347,30 +449,161 @@
   .pt-safe {
     padding-top: env(safe-area-inset-top, 0px);
   }
+
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
   .pl-safe {
     padding-left: env(safe-area-inset-left, 0px);
   }
+
   .pr-safe {
     padding-right: env(safe-area-inset-right, 0px);
   }
+
   .px-safe {
     padding-left: env(safe-area-inset-left, 0px);
     padding-right: env(safe-area-inset-right, 0px);
   }
+
   .py-safe {
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  .p-safe {
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+  }
+
+  /* Margin safe area utilities */
+  .mt-safe {
+    margin-top: var(--safe-area-top);
+  }
+
+  .mb-safe {
+    margin-bottom: var(--safe-area-bottom);
+  }
+
+  .ml-safe {
+    margin-left: var(--safe-area-left);
+  }
+
+  .mr-safe {
+    margin-right: var(--safe-area-right);
+  }
+
+  .mx-safe {
+    margin-left: var(--safe-area-left);
+    margin-right: var(--safe-area-right);
+  }
+
+  .my-safe {
+    margin-top: var(--safe-area-top);
+    margin-bottom: var(--safe-area-bottom);
+  }
+
+  /* Min-height utilities accounting for safe areas */
+  .min-h-screen-safe {
+    min-height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom));
+  }
+
+  .h-screen-safe {
+    height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom));
+  }
+
+  /* Content area with bottom nav spacing */
+  .pb-nav-safe {
+    padding-bottom: var(--content-padding-bottom);
+  }
+
+  /* Header height with safe area */
+  .h-header-safe {
+    height: var(--header-height);
+  }
+
+  .top-header-safe {
+    top: var(--header-height);
+  }
+
+  /* Keyboard-aware padding */
+  .pb-keyboard {
+    padding-bottom: var(--keyboard-height);
+  }
+
+  /* Safe area inset utilities using CSS max() for fallbacks */
+  .pt-safe-or-4 {
+    padding-top: max(var(--safe-area-top), 1rem);
+  }
+
+  .pb-safe-or-4 {
+    padding-bottom: max(var(--safe-area-bottom), 1rem);
+  }
+
+  /* Fixed position utilities with safe areas */
+  .fixed-top-safe {
+    position: fixed;
+    top: var(--safe-area-top);
+    left: var(--safe-area-left);
+    right: var(--safe-area-right);
+  }
+
+  .fixed-bottom-safe {
+    position: fixed;
+    bottom: var(--safe-area-bottom);
+    left: var(--safe-area-left);
+    right: var(--safe-area-right);
+  }
+
+  .fixed-full-safe {
+    position: fixed;
+    top: var(--safe-area-top);
+    bottom: var(--safe-area-bottom);
+    left: var(--safe-area-left);
+    right: var(--safe-area-right);
+  }
+
+  /* Inset utilities for absolute positioning */
+  .inset-safe {
+    top: var(--safe-area-top);
+    bottom: var(--safe-area-bottom);
+    left: var(--safe-area-left);
+    right: var(--safe-area-right);
+  }
+
+  .inset-x-safe {
+    left: var(--safe-area-left);
+    right: var(--safe-area-right);
+  }
+
+  .inset-y-safe {
+    top: var(--safe-area-top);
+    bottom: var(--safe-area-bottom);
+  }
+
   /* Staggered animation delays */
-  .animate-delay-100 { animation-delay: 100ms; }
-  .animate-delay-200 { animation-delay: 200ms; }
-  .animate-delay-300 { animation-delay: 300ms; }
-  .animate-delay-400 { animation-delay: 400ms; }
-  .animate-delay-500 { animation-delay: 500ms; }
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
 
   /* Fade in up animation */
   @keyframes fade-in-up {
@@ -378,11 +611,13 @@
       opacity: 0;
       transform: translateY(16px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
+
   .animate-fade-in-up {
     animation: fade-in-up 0.5s ease-out forwards;
   }
@@ -393,24 +628,30 @@
       opacity: 0;
       transform: scale(0.95);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
     }
   }
+
   .animate-scale-in {
     animation: scale-in 0.3s ease-out forwards;
   }
 
   /* Pulse glow animation */
   @keyframes pulse-glow {
-    0%, 100% {
+
+    0%,
+    100% {
       box-shadow: 0 0 20px -8px oklch(0.55 0.25 285 / 0.4);
     }
+
     50% {
       box-shadow: 0 0 30px -5px oklch(0.55 0.25 285 / 0.6);
     }
   }
+
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
@@ -420,17 +661,17 @@
     0% {
       background-position: -200% 0;
     }
+
     100% {
       background-position: 200% 0;
     }
   }
+
   .shimmer {
-    background: linear-gradient(
-      90deg,
-      oklch(0.9 0.01 270 / 0) 0%,
-      oklch(0.9 0.01 270 / 0.5) 50%,
-      oklch(0.9 0.01 270 / 0) 100%
-    );
+    background: linear-gradient(90deg,
+        oklch(0.9 0.01 270 / 0) 0%,
+        oklch(0.9 0.01 270 / 0.5) 50%,
+        oklch(0.9 0.01 270 / 0) 100%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
@@ -439,6 +680,7 @@
   .gradient-border {
     position: relative;
   }
+
   .gradient-border::before {
     content: "";
     position: absolute;
@@ -454,18 +696,81 @@
 
   /* Bottom mobile navigation spacing */
   .pb-mobile-nav {
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(5rem + var(--safe-area-bottom, env(safe-area-inset-bottom, 0px)));
   }
 
   /* Status badge styles */
   .badge-success {
     @apply bg-success/15 text-success border-success/20;
   }
+
   .badge-warning {
     @apply bg-warning/15 text-warning border-warning/20;
   }
+
   .badge-destructive {
     @apply bg-destructive/15 text-destructive border-destructive/20;
+  }
+
+  /* ========================================
+     TEXT OVERFLOW & TRUNCATION UTILITIES
+     Prevent text from overlapping or breaking layouts
+     ======================================== */
+
+  /* Single line truncation with ellipsis */
+  .text-truncate {
+    @apply truncate;
+    max-width: 100%;
+  }
+
+  /* Multi-line truncation (line clamp) */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Word break for long words/URLs */
+  .break-word {
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Prevent text selection on UI elements */
+  .no-select {
+    @apply select-none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Ensure flex items don't overflow */
+  .flex-overflow-fix {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Grid items overflow protection */
+  .grid-overflow-fix {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
   }
 }
 
@@ -475,9 +780,9 @@
     @apply fixed bottom-0 left-0 right-0 z-50 md:hidden;
     @apply bg-card/95 backdrop-blur-xl border-t border-border/50;
     @apply flex items-center justify-around;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    padding-left: env(safe-area-inset-left, 0px);
-    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: var(--safe-area-bottom, env(safe-area-inset-bottom, 0px));
+    padding-left: var(--safe-area-left, env(safe-area-inset-left, 0px));
+    padding-right: var(--safe-area-right, env(safe-area-inset-right, 0px));
   }
 
   .mobile-nav-item {
@@ -514,8 +819,7 @@
   }
 
   .premium-card::before {
-    content: "";
-    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none;
     background: linear-gradient(135deg, oklch(0.55 0.15 285 / 0.05), transparent);
   }
 
@@ -530,21 +834,268 @@
 
   /* Hero gradient background */
   .hero-gradient {
-    background: linear-gradient(
-      135deg,
-      oklch(0.52 0.26 285) 0%,
-      oklch(0.48 0.24 295) 50%,
-      oklch(0.45 0.22 270) 100%
-    );
+    background: linear-gradient(135deg,
+        oklch(0.52 0.26 285) 0%,
+        oklch(0.48 0.24 295) 50%,
+        oklch(0.45 0.22 270) 100%);
   }
 
   /* Stat card highlight */
   .stat-highlight {
     @apply relative;
   }
+
   .stat-highlight::after {
     content: "";
     @apply absolute -bottom-1 left-0 w-8 h-0.5 rounded-full;
     background: linear-gradient(90deg, var(--primary), transparent);
   }
+
+  /* Form field group */
+  .form-group {
+    @apply space-y-2;
+  }
+
+  /* Form row - for side by side fields */
+  .form-row {
+    @apply grid gap-3;
+  }
+
+  @media (min-width: 640px) {
+    .form-row {
+      @apply grid-cols-2;
+    }
+  }
+
+  /* Enhanced input wrapper with icon support */
+  .input-with-icon {
+    @apply relative;
+  }
+
+  .input-with-icon input,
+  .input-with-icon textarea {
+    @apply pl-11;
+  }
+
+  .input-with-icon .input-icon {
+    @apply absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none;
+  }
+
+  /* Loading state for buttons */
+  .btn-loading {
+    @apply relative text-transparent;
+  }
+
+  .btn-loading::after {
+    content: "";
+    @apply absolute inset-0 m-auto h-5 w-5 border-2 border-current border-t-transparent rounded-full animate-spin;
+  }
+
+  /* Touch-optimized select */
+  select {
+    @apply appearance-none bg-no-repeat cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px !important;
+  }
+
+  /* Smooth sheet/modal transitions */
+  [data-slot="sheet-content"],
+  [role="dialog"] {
+    @apply will-change-transform;
+  }
+
+  /* Bottom sheet handle indicator */
+  .sheet-handle {
+    @apply w-10 h-1 bg-muted-foreground/30 rounded-full mx-auto mb-4;
+  }
+
+  /* Card press effect for mobile */
+  @media (max-width: 768px) {
+    .card-pressable {
+      @apply active:scale-[0.98] transition-transform duration-150;
+    }
+  }
+
+  /* Floating action button styles */
+  .fab {
+    @apply fixed z-40 shadow-2xl;
+    bottom: calc(5rem + var(--safe-area-bottom, env(safe-area-inset-bottom, 0px)) + 1rem);
+    right: calc(1rem + var(--safe-area-right, env(safe-area-inset-right, 0px)));
+  }
+}
+
+/* ========================================
+   ANDROID SPECIFIC STYLES
+   Support for notches, navigation bar, and Android-specific UI
+   ======================================== */
+
+/* Android platform detection */
+.platform-android {
+  /* Android navigation bar padding */
+  --android-nav-height: 48px;
+  --android-status-height: 24px;
+}
+
+/* Android devices with notch/cutout */
+.platform-android.has-notch {
+  --android-status-height: 32px;
+}
+
+/* Android safe area fallbacks (when env() not supported) */
+@supports not (padding-bottom: env(safe-area-inset-bottom)) {
+  .platform-android {
+    /* Fallback padding for older Android WebViews */
+    --safe-area-inset-top: var(--android-status-height, 24px);
+    --safe-area-inset-bottom: var(--android-nav-height, 48px);
+    --safe-area-inset-left: 0px;
+    --safe-area-inset-right: 0px;
+  }
+
+  .platform-android .pt-safe {
+    padding-top: var(--safe-area-inset-top);
+  }
+
+  .platform-android .pb-safe {
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+
+  .platform-android .mobile-nav {
+    padding-bottom: var(--android-nav-height);
+  }
+
+  .platform-android header {
+    padding-top: calc(0.75rem + var(--android-status-height));
+  }
+}
+
+/* Android keyboard visible adjustments */
+.platform-android.keyboard-visible {
+  /* Reduce bottom padding when keyboard is shown */
+  --keyboard-height: 0px;
+}
+
+.platform-android.keyboard-visible .mobile-nav {
+  display: none;
+}
+
+.platform-android.keyboard-visible [data-slot="sheet-footer"] {
+  padding-bottom: 1rem;
+}
+
+/* Android specific touch targets (larger) */
+.platform-android button,
+.platform-android a,
+.platform-android [role="button"] {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+.platform-android input,
+.platform-android textarea,
+.platform-android select {
+  min-height: 48px;
+}
+
+/* Android ripple effect simulation */
+.platform-android .ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.platform-android .ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(0,0,0,0.1) 10%, transparent 10%);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 1000% 1000%;
+  opacity: 0;
+  transition: background-size 0.5s, opacity 0.5s;
+}
+
+.platform-android .ripple:active::after {
+  background-size: 0% 0%;
+  opacity: 1;
+  transition: 0s;
+}
+
+/* Android landscape mode */
+.platform-android.landscape {
+  --android-nav-height: 0px;
+}
+
+.platform-android.landscape .mobile-nav {
+  /* Hide bottom nav in landscape */
+  display: none;
+}
+
+.platform-android.landscape main {
+  padding-bottom: 1rem;
+}
+
+/* Android Sheet/Modal adjustments */
+.platform-android [data-slot="sheet-content"] {
+  /* Ensure proper safe area on Android */
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--android-nav-height, 48px));
+}
+
+.platform-android [data-slot="sheet-footer"] {
+  padding-bottom: calc(1rem + max(env(safe-area-inset-bottom, 0px), var(--android-nav-height, 48px)));
+}
+
+/* Android specific scrolling */
+.platform-android .overflow-y-auto {
+  -webkit-overflow-scrolling: auto;
+  overscroll-behavior: contain;
+}
+
+/* Android status bar area tap prevention */
+.platform-android header {
+  touch-action: none;
+}
+
+/* ========================================
+   iOS SPECIFIC STYLES (already mostly handled by env())
+   ======================================== */
+
+.platform-ios {
+  /* iOS uses env() values automatically */
+}
+
+/* iOS home indicator area */
+.platform-ios .mobile-nav {
+  padding-bottom: var(--safe-area-bottom, env(safe-area-inset-bottom, 34px));
+}
+
+/* iOS notch handling for landscape */
+.platform-ios.landscape {
+  padding-left: var(--safe-area-left, env(safe-area-inset-left, 44px));
+  padding-right: var(--safe-area-right, env(safe-area-inset-right, 44px));
+}
+
+/* ========================================
+   KEYBOARD VISIBLE - BOTH PLATFORMS
+   ======================================== */
+
+body.keyboard-visible {
+  /* Adjust for keyboard */
+  --keyboard-offset: var(--keyboard-height, 300px);
+}
+
+body.keyboard-visible .mobile-nav {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+body.keyboard-visible main {
+  padding-bottom: 1rem;
+}
+
+/* Keep input visible when keyboard is open */
+body.keyboard-visible input:focus,
+body.keyboard-visible textarea:focus {
+  scroll-margin-bottom: calc(var(--keyboard-height, 300px) + 20px);
 }

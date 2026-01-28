@@ -1,7 +1,8 @@
 
 import paramiko
+import time
 
-def seed_vps():
+def seed_remote():
     host = "82.165.195.155"
     username = "root"
     password = "Tl7Z7Wfa"
@@ -12,23 +13,25 @@ def seed_vps():
     
     try:
         client.connect(host, username=username, password=password)
-        print("Connecté.")
+        print("Connecté. Lancement du seeding...")
         
-        commands = [
-            "docker exec app-sportsante npx prisma migrate deploy",
-            "docker exec app-sportsante npx prisma generate",
-            "docker exec app-sportsante node prisma/seed.js"
-        ]
+        # Execute seed in the running container
+        stdin, stdout, stderr = client.exec_command("docker exec app-sportsante node prisma/seed.js")
         
-        for cmd in commands:
-            print(f"\nExécution: {cmd}")
-            stdin, stdout, stderr = client.exec_command(cmd)
-            out = stdout.read().decode()
-            err = stderr.read().decode()
-            if out: print(f"SORTIE:\n{out}")
-            if err: print(f"ERREUR:\n{err}")
+        # Stream output
+        while True:
+            line = stdout.readline()
+            if not line: break
+            print(line.strip())
             
-        print("\nInitialisation terminée.")
+        exit_status = stdout.channel.recv_exit_status()
+        err = stderr.read().decode()
+        
+        if exit_status == 0:
+            print("\n✅ Base de données initialisée avec succès (Admin créé).")
+        else:
+            print("\n❌ Erreur lors du seeding :")
+            print(err)
 
     except Exception as e:
         print(f"Erreur: {e}")
@@ -36,4 +39,4 @@ def seed_vps():
         client.close()
 
 if __name__ == "__main__":
-    seed_vps()
+    seed_remote()

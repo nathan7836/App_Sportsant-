@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetBody, SheetFooter, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -126,21 +126,20 @@ export function EditSessionSheet({ session, coaches, open, onOpenChange, userRol
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-                <SheetHeader className="pb-4">
+            <SheetContent>
+                <SheetHeader>
                     <SheetTitle className="flex items-center gap-2">
                         <CalendarCheck className="h-5 w-5 text-primary" />
                         Modifier la Séance
                     </SheetTitle>
-                    <SheetDescription className="flex items-center gap-2">
-                        <span className="font-medium">{session.service.name}</span>
-                        <span>avec</span>
-                        <span className="font-medium">{session.client.name}</span>
+                    <SheetDescription className="truncate">
+                        {session.service.name} avec {session.client.name}
                     </SheetDescription>
                 </SheetHeader>
 
+                <SheetBody>
                 {/* Current Session Info Card */}
-                <Card className="p-4 bg-muted/30 mb-6">
+                <Card className="p-3 bg-muted/30 mb-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -158,7 +157,7 @@ export function EditSessionSheet({ session, coaches, open, onOpenChange, userRol
                     </div>
                 </Card>
 
-                <form action={updateAction} className="space-y-6">
+                <form action={updateAction} id="edit-session-form" className="space-y-4">
                     <input type="hidden" name="sessionId" value={session.id} />
                     <input type="hidden" name="date" value={selectedDate} />
                     <input type="hidden" name="time" value={selectedTime} />
@@ -300,106 +299,91 @@ export function EditSessionSheet({ session, coaches, open, onOpenChange, userRol
                     <Separator />
 
                     {/* 5. NOTES */}
-                    <div className="space-y-3">
-                        <Label className="flex items-center gap-2 text-base font-semibold">
-                            Notes
-                        </Label>
+                    <div className="space-y-2">
+                        <Label className="text-xs font-medium text-muted-foreground">Notes</Label>
                         <Textarea
                             placeholder="Informations complémentaires..."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="min-h-[80px] resize-none"
+                            className="min-h-[60px] resize-none"
                         />
                     </div>
 
-                    {/* SUBMIT BUTTON */}
-                    <Button
-                        type="submit"
-                        className="w-full h-14 text-lg font-bold gap-2"
-                        disabled={isUpdatePending || isDeletePending}
-                    >
-                        {isUpdatePending ? (
-                            "Enregistrement..."
-                        ) : (
-                            <>
-                                <Save className="h-5 w-5" />
-                                Enregistrer les modifications
-                            </>
-                        )}
-                    </Button>
-                </form>
+                    {/* REQUEST CHANGE SECTION (for coaches) */}
+                    {isCoach && isOwnSession && (
+                        <div className="pt-4 border-t">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full gap-2 border-amber-200 text-amber-700 hover:bg-amber-50"
+                                onClick={() => setShowRequestSheet(true)}
+                                disabled={!canRequestChange}
+                            >
+                                <CalendarClock className="h-4 w-4" />
+                                {canRequestChange ? "Demander une modification" : "Impossible (< 24h)"}
+                            </Button>
+                        </div>
+                    )}
 
-                {/* REQUEST CHANGE SECTION (for coaches) */}
-                {isCoach && isOwnSession && (
-                    <div className="mt-6 pt-6 border-t">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full gap-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
-                            onClick={() => setShowRequestSheet(true)}
-                            disabled={!canRequestChange}
-                        >
-                            <CalendarClock className="h-4 w-4" />
-                            {canRequestChange
-                                ? "Demander une modification"
-                                : "Modification impossible (< 24h)"}
-                        </Button>
-                        {!canRequestChange && (
-                            <p className="text-xs text-muted-foreground text-center mt-2">
-                                Contactez directement l'administration pour modifier cette séance.
-                            </p>
-                        )}
-                    </div>
-                )}
-
-                {/* DELETE SECTION (admin only) */}
-                {isAdmin && (
-                <div className="mt-8 pt-6 border-t border-destructive/20">
-                    {!showDeleteConfirm ? (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setShowDeleteConfirm(true)}
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer la séance
-                        </Button>
-                    ) : (
-                        <Card className="p-4 bg-destructive/5 border-destructive/20">
-                            <div className="flex items-center gap-2 mb-3 text-destructive">
-                                <AlertTriangle className="h-5 w-5" />
-                                <p className="font-semibold">Confirmer la suppression ?</p>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-4">
-                                Cette action est irréversible. La séance sera définitivement supprimée.
-                            </p>
-                            <div className="flex gap-2">
+                    {/* DELETE SECTION (admin only) */}
+                    {isAdmin && (
+                        <div className="pt-4 border-t">
+                            {!showDeleteConfirm ? (
                                 <Button
                                     type="button"
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => setShowDeleteConfirm(false)}
+                                    variant="ghost"
+                                    className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => setShowDeleteConfirm(true)}
                                 >
-                                    Annuler
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Supprimer la séance
                                 </Button>
-                                <form action={deleteAction} className="flex-1">
-                                    <input type="hidden" name="sessionId" value={session.id} />
-                                    <Button
-                                        type="submit"
-                                        variant="destructive"
-                                        className="w-full"
-                                        disabled={isDeletePending}
-                                    >
-                                        <Trash2 className="h-4 w-4 mr-2" />
-                                        {isDeletePending ? "Suppression..." : "Supprimer"}
-                                    </Button>
-                                </form>
-                            </div>
-                        </Card>
+                            ) : (
+                                <Card className="p-3 bg-destructive/5 border-destructive/20">
+                                    <div className="flex items-center gap-2 mb-2 text-destructive">
+                                        <AlertTriangle className="h-4 w-4" />
+                                        <p className="font-semibold text-sm">Confirmer ?</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={() => setShowDeleteConfirm(false)}
+                                        >
+                                            Annuler
+                                        </Button>
+                                        <form action={deleteAction} className="flex-1">
+                                            <input type="hidden" name="sessionId" value={session.id} />
+                                            <Button
+                                                type="submit"
+                                                variant="destructive"
+                                                size="sm"
+                                                className="w-full"
+                                                disabled={isDeletePending}
+                                            >
+                                                {isDeletePending ? "..." : "Supprimer"}
+                                            </Button>
+                                        </form>
+                                    </div>
+                                </Card>
+                            )}
+                        </div>
                     )}
-                </div>
-                )}
+                </form>
+                </SheetBody>
+
+                <SheetFooter>
+                    <Button
+                        type="submit"
+                        form="edit-session-form"
+                        className="w-full h-11 font-semibold gap-2"
+                        disabled={isUpdatePending || isDeletePending}
+                    >
+                        {isUpdatePending ? "Enregistrement..." : <><Save className="h-4 w-4" /> Enregistrer</>}
+                    </Button>
+                </SheetFooter>
 
                 {/* Session Change Request Sheet */}
                 <SessionChangeRequestSheet

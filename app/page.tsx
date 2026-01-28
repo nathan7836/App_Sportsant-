@@ -304,7 +304,7 @@ export default async function Home() {
                 </CardTitle>
                 <CardDescription className="mt-1">Chiffre d'Affaires</CardDescription>
               </div>
-              {session?.user?.role === "ADMIN" && <GoalDialog currentGoal={monthlyGoal} />}
+              <GoalDialog currentGoal={monthlyGoal} />
             </div>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center pt-4 pb-6">

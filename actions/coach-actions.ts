@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
+import { saveFile } from "@/lib/file-storage"
 
 const CoachSchema = z.object({
     name: z.string().min(1, "Le nom est requis"),
@@ -12,14 +13,15 @@ const CoachSchema = z.object({
     password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères").optional().or(z.literal('')),
 })
 
+// Schema relaxé pour accepter File ou string
 const CoachDetailsSchema = z.object({
     hourlyRate: z.coerce.number().min(0).optional(),
     diplomes: z.string().optional(),
-    diplomesFile: z.string().optional(),
+    diplomesFile: z.any().optional(), // File or string
     rcpInsurance: z.string().optional(),
-    rcpFile: z.string().optional(),
+    rcpFile: z.any().optional(),
     contrat: z.string().optional(),
-    contratFile: z.string().optional(),
+    contratFile: z.any().optional(),
     skills: z.string().optional(),
     specialties: z.string().optional(),
     bio: z.string().optional(),
@@ -53,8 +55,15 @@ export async function createCoach(prevState: any, formData: FormData) {
         })
         revalidatePath("/coaches")
         return { success: true, message: "Coach ajouté avec succès" }
-    } catch (e) {
-        return { error: "Erreur (Email déjà utilisé ?)" }
+    } catch (e: any) {
+        console.error("Erreur création coach:", e)
+        if (e?.code === 'P2002') {
+            return { error: "Cet email est déjà utilisé." }
+        }
+        if (e?.code === 'P1001' || e?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la création. Réessayez." }
     }
 }
 
@@ -67,19 +76,34 @@ export async function deleteCoach(prevState: any, formData: FormData) {
         await prisma.user.delete({ where: { id: userId } })
         revalidatePath("/coaches")
         return { success: true, message: "Coach supprimé" }
-    } catch (e) {
-        return { error: "Erreur lors de la suppression" }
+    } catch (e: any) {
+        console.error("Erreur suppression coach:", e)
+        if (e?.code === 'P2003' || e?.code === 'P2014') {
+            return { error: "Impossible de supprimer : ce coach a des séances ou données associées." }
+        }
+        if (e?.code === 'P2025') {
+            return { error: "Coach introuvable." }
+        }
+        if (e?.code === 'P1001' || e?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la suppression. Réessayez." }
     }
 }
 
 export async function updateCoachDetails(prevState: any, formData: FormData) {
     const session = await auth()
-    if (!session || session.user?.role !== "ADMIN") return { error: "Non autorisé" }
+    if (!session) return { error: "Non autorisé" }
 
     const userId = formData.get("userId") as string
     if (!userId) return { error: "ID utilisateur manquant" }
 
-    const data = {
+    // Admin peut modifier tous les profils, coach peut modifier uniquement son propre profil
+    const isAdmin = session.user?.role === "ADMIN"
+    const isOwnProfile = session.user?.id === userId
+    if (!isAdmin && !isOwnProfile) return { error: "Non autorisé" }
+
+    const rawData = {
         hourlyRate: formData.get("hourlyRate"),
         diplomes: formData.get("diplomes"),
         diplomesFile: formData.get("diplomesFile"),
@@ -93,18 +117,52 @@ export async function updateCoachDetails(prevState: any, formData: FormData) {
         phone: formData.get("phone"),
     }
 
-    const validatedFields = CoachDetailsSchema.safeParse(data)
+    const validatedFields = CoachDetailsSchema.safeParse(rawData)
     if (!validatedFields.success) return { error: validatedFields.error.issues[0].message }
 
+    const data = validatedFields.data
+
     try {
+        // Handle File Uploads
+        let diplomesPath = undefined
+        let rcpPath = undefined
+        let contratPath = undefined
+
+        if (data.diplomesFile instanceof File && data.diplomesFile.size > 0) {
+            diplomesPath = await saveFile(data.diplomesFile, "documents")
+        }
+        if (data.rcpFile instanceof File && data.rcpFile.size > 0) {
+            rcpPath = await saveFile(data.rcpFile, "documents")
+        }
+        if (data.contratFile instanceof File && data.contratFile.size > 0) {
+            contratPath = await saveFile(data.contratFile, "documents")
+        }
+
+        // Prepare update object
+        // If path is undefined (no new file), we don't update the field
+        const updateData: any = {
+            hourlyRate: data.hourlyRate,
+            diplomes: data.diplomes,
+            rcpInsurance: data.rcpInsurance,
+            contrat: data.contrat,
+            skills: data.skills,
+            specialties: data.specialties,
+            bio: data.bio,
+            phone: data.phone,
+        }
+
+        if (diplomesPath) updateData.diplomesFile = diplomesPath
+        if (rcpPath) updateData.rcpFile = rcpPath
+        if (contratPath) updateData.contratFile = contratPath
+
         // Upsert coach details
         await prisma.coachDetails.upsert({
             where: { userId },
             create: {
                 userId,
-                ...validatedFields.data,
+                ...updateData
             },
-            update: validatedFields.data,
+            update: updateData,
         })
 
         // Update user name if provided
@@ -119,9 +177,15 @@ export async function updateCoachDetails(prevState: any, formData: FormData) {
         revalidatePath("/coaches")
         revalidatePath(`/coaches/${userId}`)
         return { success: true, message: "Profil mis à jour" }
-    } catch (e) {
-        console.error(e)
-        return { error: "Erreur lors de la mise à jour" }
+    } catch (e: any) {
+        console.error("Erreur mise à jour profil:", e)
+        if (e?.code === 'P2025') {
+            return { error: "Profil introuvable." }
+        }
+        if (e?.code === 'P1001' || e?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la mise à jour. Réessayez." }
     }
 }
 
@@ -193,9 +257,12 @@ export async function createAbsence(prevState: any, formData: FormData) {
         revalidatePath("/coaches")
         revalidatePath("/planning")
         return { success: true, message: "Absence déclarée" }
-    } catch (e) {
-        console.error(e)
-        return { error: "Erreur lors de la création" }
+    } catch (e: any) {
+        console.error("Erreur création absence:", e)
+        if (e?.code === 'P1001' || e?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la déclaration. Réessayez." }
     }
 }
 
@@ -215,8 +282,15 @@ export async function updateAbsenceStatus(prevState: any, formData: FormData) {
         })
         revalidatePath("/coaches")
         return { success: true, message: `Absence ${status === "APPROVED" ? "approuvée" : "refusée"}` }
-    } catch (e) {
-        return { error: "Erreur lors de la mise à jour" }
+    } catch (e: any) {
+        console.error("Erreur mise à jour absence:", e)
+        if (e?.code === 'P2025') {
+            return { error: "Absence introuvable." }
+        }
+        if (e?.code === 'P1001' || e?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la mise à jour. Réessayez." }
     }
 }
 
@@ -239,8 +313,15 @@ export async function deleteAbsence(prevState: any, formData: FormData) {
         await prisma.absence.delete({ where: { id: absenceId } })
         revalidatePath("/coaches")
         return { success: true, message: "Absence supprimée" }
-    } catch (e) {
-        return { error: "Erreur lors de la suppression" }
+    } catch (e: any) {
+        console.error("Erreur suppression absence:", e)
+        if (e?.code === 'P2025') {
+            return { error: "Absence introuvable." }
+        }
+        if (e?.code === 'P1001' || e?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la suppression. Réessayez." }
     }
 }
 

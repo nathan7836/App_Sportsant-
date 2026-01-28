@@ -37,9 +37,15 @@ export async function createService(prevState: any, formData: FormData) {
         })
         revalidatePath("/services")
         return { success: true, message: "Service créé avec succès" }
-    } catch (error) {
-        console.error("Failed to create service:", error)
-        return { error: "Erreur lors de la création du service." }
+    } catch (error: any) {
+        console.error("Erreur création service:", error)
+        if (error?.code === 'P2002') {
+            return { error: "Un service avec ce nom existe déjà." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la création. Réessayez." }
     }
 }
 
@@ -68,9 +74,15 @@ export async function updateService(prevState: any, formData: FormData) {
         })
         revalidatePath("/services")
         return { success: true, message: "Service mis à jour" }
-    } catch (error) {
-        console.error("Failed to update service:", error)
-        return { error: "Erreur lors de la modification." }
+    } catch (error: any) {
+        console.error("Erreur modification service:", error)
+        if (error?.code === 'P2025') {
+            return { error: "Service introuvable." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la modification. Réessayez." }
     }
 }
 
@@ -96,8 +108,17 @@ export async function deleteService(prevState: any, formData: FormData) {
         })
         revalidatePath("/services")
         return { success: true, message: "Service supprimé" }
-    } catch (error) {
-        console.error("Failed to delete service:", error)
-        return { error: "Erreur lors de la suppression." }
+    } catch (error: any) {
+        console.error("Erreur suppression service:", error)
+        if (error?.code === 'P2025') {
+            return { error: "Service introuvable." }
+        }
+        if (error?.code === 'P2003' || error?.code === 'P2014') {
+            return { error: "Impossible de supprimer : ce service est utilisé." }
+        }
+        if (error?.code === 'P1001' || error?.code === 'P1002') {
+            return { error: "Erreur de connexion. Vérifiez votre réseau." }
+        }
+        return { error: "Erreur lors de la suppression. Réessayez." }
     }
 }
