@@ -95,7 +95,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
                         </Button>
                     </div>
 
-                    <NewSessionSheet clients={clients} coaches={coaches} services={services} />
+                    <NewSessionSheet clients={clients} coaches={coaches} services={services} userRole={session.user?.role} />
                 </div>
             </div>
 

@@ -8,6 +8,7 @@ import { ServiceSheet } from "@/components/services/service-sheet"
 export default async function ServicesPage() {
     const session = await auth()
     if (!session) redirect("/login")
+    if (session.user?.role === "COACH") redirect("/")
 
     const services = await prisma.service.findMany({
         orderBy: { name: 'asc' }

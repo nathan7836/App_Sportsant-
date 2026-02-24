@@ -35,7 +35,9 @@ export default async function Home() {
   const [sessions, clientCount, upcomingSessions, pendingValidation] = await Promise.all([
     prisma.session.findMany({
       where: {
-        date: { gte: startOfMonth, lte: endOfMonth }
+        date: { gte: startOfMonth, lte: endOfMonth },
+        status: { not: 'CANCELLED' },
+        coachId: session.user?.role === 'COACH' ? session.user.id : undefined
       },
       include: {
         service: true,
@@ -79,6 +81,7 @@ export default async function Home() {
   const profit = revenue - totalCost
   const sessionsCount = sessions.length
   const percentage = Math.min(Math.round((revenue / monthlyGoal) * 100), 100)
+  const isAdmin = session.user?.role === 'ADMIN'
 
   // Get greeting based on time of day
   const hour = now.getHours()
@@ -116,7 +119,7 @@ export default async function Home() {
             </h1>
             <p className="text-white/75 text-sm sm:text-base md:text-lg max-w-lg">
               Vous avez <span className="font-semibold text-white">{sessionsCount}</span> séance{sessionsCount > 1 ? 's' : ''} ce mois.
-              Objectif atteint à <span className="font-semibold text-amber-300">{percentage}%</span>.
+              {isAdmin && <> Objectif atteint à <span className="font-semibold text-amber-300">{percentage}%</span>.</>}
             </p>
           </div>
 
@@ -144,9 +147,9 @@ export default async function Home() {
       </div>
 
       {/* Stats Grid - Staggered Animation */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className={`grid grid-cols-2 ${isAdmin ? 'md:grid-cols-3 lg:grid-cols-5' : 'md:grid-cols-2'} gap-3 sm:gap-4`}>
         {[
-          {
+          ...(isAdmin ? [{
             title: "Chiffre d'Affaires",
             value: `€ ${revenue.toLocaleString()}`,
             subtitle: `${percentage}% Obj.`,
@@ -164,7 +167,7 @@ export default async function Home() {
             icon: TrendingUp,
             iconBg: "bg-indigo-500/10",
             iconColor: "text-indigo-500"
-          },
+          }] : []),
           {
             title: "Clients Total",
             value: clientCount.toString(),
@@ -183,7 +186,7 @@ export default async function Home() {
             iconBg: "bg-purple-500/10",
             iconColor: "text-purple-500"
           },
-          {
+          ...(isAdmin ? [{
             title: "Reste à faire",
             value: `€ ${Math.max(0, monthlyGoal - revenue).toLocaleString()}`,
             subtitle: "Pour objectif",
@@ -191,7 +194,7 @@ export default async function Home() {
             icon: Activity,
             iconBg: "bg-amber-500/10",
             iconColor: "text-amber-500"
-          }
+          }] : [])
         ].map((stat, index) => (
           <Card
             key={stat.title}
@@ -218,10 +221,10 @@ export default async function Home() {
       </div>
 
       {/* Content Grid */}
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-7">
+      <div className={`grid gap-4 sm:gap-6 ${isAdmin ? 'lg:grid-cols-7' : ''}`}>
 
         {/* Recent Sessions Card */}
-        <Card className="lg:col-span-4 premium-card animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+        <Card className={`${isAdmin ? 'lg:col-span-4' : ''} premium-card animate-fade-in-up`} style={{ animationDelay: '400ms' }}>
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
@@ -291,7 +294,8 @@ export default async function Home() {
           </CardContent>
         </Card>
 
-        {/* Goals Card */}
+        {/* Goals Card - Admin only */}
+        {isAdmin && (
         <Card className="lg:col-span-3 premium-card animate-fade-in-up" style={{ animationDelay: '500ms' }}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -380,6 +384,7 @@ export default async function Home() {
             </div>
           </CardContent>
         </Card>
+        )}
       </div>
     </div>
   )

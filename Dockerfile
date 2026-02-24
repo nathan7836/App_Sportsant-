@@ -20,7 +20,7 @@ COPY . .
 # Environment variables must be present at build time
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV AUTH_SECRET="dummy_secret_for_build"
-ENV DATABASE_URL="file:./dev.db"
+ENV DATABASE_URL="file:/app/data/dev.db"
 
 # Build Next.js
 RUN npx prisma generate
@@ -52,10 +52,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/bcryptjs ./node_modules/bcryptjs
 # Note: dev.db is mounted via docker-compose volume, not copied during build
 
-# Create entrypoint script to run migrations before starting
+# Create entrypoint script - NO prisma db push (it erases the mounted DB volume)
 RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
-    echo 'echo "Running database migrations..."' >> /app/entrypoint.sh && \
-    echo 'node node_modules/prisma/build/index.js db push --accept-data-loss --skip-generate 2>/dev/null || echo "Migration skipped or failed"' >> /app/entrypoint.sh && \
     echo 'echo "Starting server..."' >> /app/entrypoint.sh && \
     echo 'exec node server.js' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh

@@ -1,0 +1,6 @@
+dbs:
+  - path: /data/dev.db
+    replicas:
+      - url: s3://sportsante/dev_db
+        endpoint: https://efdfb68130680a1da8989d0b2cb01b2e.r2.cloudflarestorage.com
+        region: auto

@@ -25,7 +25,7 @@ const navItems: NavItem[] = [
 ]
 
 const moreItems: NavItem[] = [
-    { title: "Facturation", href: "/billing", icon: Euro },
+    { title: "Facturation", href: "/billing", icon: Euro, adminOnly: true },
     { title: "Utilisateurs", href: "/admin/users", icon: Lock, adminOnly: true },
     { title: "Demandes", href: "/admin/requests", icon: CalendarClock, adminOnly: true },
     { title: "Paramètres", href: "/settings", icon: Settings },

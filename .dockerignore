@@ -1,0 +1,18 @@
+node_modules
+.next
+.git
+*.tar.gz
+*.tar
+*.zip
+
+# Never copy local DB files into the Docker image
+**/dev.db
+**/dev.db-wal
+**/dev.db-shm
+**/dev.db-journal
+prisma/dev.db*
+
+# Python scripts
+*.py
+.env
+.DS_Store

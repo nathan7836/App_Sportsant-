@@ -14,10 +14,14 @@ import { DownloadReportButton } from "@/components/billing/download-report-butto
 export default async function BillingPage() {
     const session = await auth()
     if (!session) redirect("/login")
+    if (session.user?.role === "COACH") redirect("/")
 
     // 1. Fetch all sessions (in a real app, we'd filter by month e.g. using searchParams)
     // For this MVP, we take everything to show data.
     const sessions = await prisma.session.findMany({
+        where: {
+            status: { not: 'CANCELLED' }
+        },
         include: {
             service: true,
             coach: {

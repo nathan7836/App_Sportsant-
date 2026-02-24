@@ -92,5 +92,12 @@ export async function createUser(prevState: any, formData: FormData) {
 }
 
 export async function logout() {
+    // Supprimer tous les tokens push de l'utilisateur avant déconnexion
+    const session = await auth()
+    if (session?.user?.id) {
+        await prisma.deviceToken.deleteMany({
+            where: { userId: session.user.id }
+        })
+    }
     await signOut({ redirectTo: "/login" })
 }

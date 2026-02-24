@@ -3,6 +3,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { sendPushToUser } from "@/lib/push"
 import { z } from "zod"
 
 const CreateSessionSchema = z.object({
@@ -111,11 +112,31 @@ export async function createSession(prevState: any, formData: FormData) {
             }
 
             // Batch create
-            // Prisma createMany is not supported on SQLite? 
+            // Prisma createMany is not supported on SQLite?
             // "The createMany is not supported by SQLite connector." -> TRUE.
             // Must use loop.
             for (const s of sessionsToCreate) {
                 await prisma.session.create({ data: s })
+            }
+
+            // Notify coach if assigned by someone else (admin)
+            if (coachId !== session.user?.id) {
+                const client = await prisma.client.findUnique({ where: { id: clientId } })
+                await prisma.notification.create({
+                    data: {
+                        userId: coachId,
+                        type: 'SESSION_CREATED',
+                        title: 'Nouvelles séances planifiées',
+                        message: `${sessionsToCreate.length} séances récurrentes avec ${client?.name || 'un client'} ont été planifiées pour vous.`,
+                        link: '/planning'
+                    }
+                })
+                sendPushToUser(
+                    coachId,
+                    'Nouvelles séances planifiées',
+                    `${sessionsToCreate.length} séances récurrentes avec ${client?.name || 'un client'} ont été planifiées pour vous.`,
+                    { link: '/planning' }
+                ).catch(err => console.error('[Push] Error sending to coach:', err))
             }
 
             revalidatePath("/planning")
@@ -134,6 +155,28 @@ export async function createSession(prevState: any, formData: FormData) {
                     notes,
                 }
             })
+
+            // Notify coach if assigned by someone else (admin)
+            if (coachId !== session.user?.id) {
+                const client = await prisma.client.findUnique({ where: { id: clientId } })
+                const dateFormatted = startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+                await prisma.notification.create({
+                    data: {
+                        userId: coachId,
+                        type: 'SESSION_CREATED',
+                        title: 'Nouvelle séance planifiée',
+                        message: `Une séance avec ${client?.name || 'un client'} a été planifiée pour vous le ${dateFormatted}.`,
+                        link: '/planning'
+                    }
+                })
+                sendPushToUser(
+                    coachId,
+                    'Nouvelle séance planifiée',
+                    `Une séance avec ${client?.name || 'un client'} a été planifiée pour vous le ${dateFormatted}.`,
+                    { link: '/planning' }
+                ).catch(err => console.error('[Push] Error sending to coach:', err))
+            }
+
             revalidatePath("/planning")
             revalidatePath("/")
             return { success: true }

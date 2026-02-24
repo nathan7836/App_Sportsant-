@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     build:
@@ -8,29 +6,30 @@ services:
     container_name: app-sportsante
     restart: always
     ports:
-      - "80:3000"
+      - "3000:3000"
+    env_file:
+      - /var/lib/sportsante/.env
     environment:
-      - DATABASE_URL=file:/app/dev.db
-      - NEXTAUTH_URL=http://82.165.195.155
+      - DATABASE_URL=file:/app/data/dev.db
+      - NEXTAUTH_URL=http://82.165.195.155:3000
       - AUTH_SECRET=change_me_in_prod_env
-      - NEXT_PUBLIC_APP_URL=http://82.165.195.155
+      - NEXT_PUBLIC_APP_URL=http://82.165.195.155:3000
       - AUTH_TRUST_HOST=true
     volumes:
-      # Persist the SQLite database
-      - ./dev.db:/app/dev.db
-      # Persist uploads
-      - ./public/uploads:/app/public/uploads
+      # TOUT le repertoire DB monte (dev.db + WAL + SHM) - jamais touche par les deploiements
+      - /var/lib/sportsante:/app/data
+      # Uploads
+      - /var/lib/sportsante/uploads:/app/public/uploads
 
   backup-worker:
-    build:
-      context: ./backup_service
-      dockerfile: Dockerfile
+    image: litestream/litestream:latest
     container_name: app-backup-worker
     restart: always
+    user: "1001:1001"
+    command: replicate
+    environment:
+      - LITESTREAM_ACCESS_KEY_ID=05db8e6f7c7a1ab2cd679964d31781d0
+      - LITESTREAM_SECRET_ACCESS_KEY=ce77b81d3e6201da382055bbe5f37ddb7586ffe1b8a72272dc31663ffe040852
     volumes:
-      # Read-only access to the live DB
-      - ./dev.db:/data/dev.db:ro
-      # Write access to the HOST persistent backup directory
-      # We map a host path that survives deployments
-      - /root/auto_backups:/backups
-
+      - /var/lib/sportsante:/data
+      - ./litestream.yml:/etc/litestream.yml

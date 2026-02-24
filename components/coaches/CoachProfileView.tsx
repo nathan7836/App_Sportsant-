@@ -126,9 +126,11 @@ export function CoachProfileView({ coach, isAdmin, isOwnProfile }: CoachProfileV
                                         <Phone className="h-4 w-4" /> {details.phone}
                                     </span>
                                 )}
+                                {isAdmin && (
                                 <span className="flex items-center gap-1">
                                     <Euro className="h-4 w-4" /> {details?.hourlyRate || 0}€/h
                                 </span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -188,6 +190,7 @@ export function CoachProfileView({ coach, isAdmin, isOwnProfile }: CoachProfileV
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-6">
+                                    {isAdmin && (
                                     <div className="space-y-2">
                                         <Label htmlFor="hourlyRate">Tarif horaire (€)</Label>
                                         <Input
@@ -199,6 +202,7 @@ export function CoachProfileView({ coach, isAdmin, isOwnProfile }: CoachProfileV
                                             min={0}
                                         />
                                     </div>
+                                    )}
                                     <div className="space-y-2">
                                         <Label htmlFor="specialties">Spécialisations</Label>
                                         <Input

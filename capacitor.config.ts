@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'SportSanté',
   webDir: 'public',
   server: {
-    url: 'http://82.165.195.155',
+    url: 'http://82.165.195.155:3000',
     cleartext: true
   },
   ios: {
@@ -25,6 +25,9 @@ const config: CapacitorConfig = {
       style: 'DARK',
       backgroundColor: '#f8f7ff',
       overlaysWebView: false
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
     }
   }
 };

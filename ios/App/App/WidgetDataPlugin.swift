@@ -8,7 +8,7 @@ public class WidgetDataPlugin: CAPPlugin {
         let nextSession = call.getString("nextSession") ?? ""
         let time = call.getString("time") ?? ""
         let coach = call.getString("coach") ?? ""
-        
+
         // Define structure matching WidgetData
         struct WidgetData: Codable {
             let nextSession: String
@@ -19,7 +19,6 @@ public class WidgetDataPlugin: CAPPlugin {
         let dataToSave = WidgetData(nextSession: nextSession, time: time, coach: coach)
 
         // Write to App Group UserDefaults
-        // ⚠️ MUST MATCH THE SUITE NAME IN THE WIDGET
         if let userDefaults = UserDefaults(suiteName: "group.com.sportsante.app") {
             if let encoded = try? JSONEncoder().encode(dataToSave) {
                 userDefaults.set(encoded, forKey: "widgetData")

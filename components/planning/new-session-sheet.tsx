@@ -33,9 +33,10 @@ interface NewSessionSheetProps {
     clients: Client[]
     coaches: UserType[]
     services: Service[]
+    userRole?: string
 }
 
-export function NewSessionSheet({ clients, coaches, services }: NewSessionSheetProps) {
+export function NewSessionSheet({ clients, coaches, services, userRole }: NewSessionSheetProps) {
     const [open, setOpen] = useState(false)
     const [state, formAction, isPending] = useActionState(createSession, null)
 
@@ -300,7 +301,7 @@ export function NewSessionSheet({ clients, coaches, services }: NewSessionSheetP
                                                 {service.durationMin} min
                                             </p>
                                         </div>
-                                        <span className="text-lg font-bold shrink-0 ml-2">{service.price}€</span>
+                                        {userRole !== 'COACH' && <span className="text-lg font-bold shrink-0 ml-2">{service.price}€</span>}
                                     </button>
                                 ))}
                             </div>
@@ -389,7 +390,7 @@ export function NewSessionSheet({ clients, coaches, services }: NewSessionSheetP
                                     <Separator className="my-1.5" />
                                     <div className="flex justify-between items-center">
                                         <span className="text-muted-foreground">{selectedServiceObj?.name}</span>
-                                        <span className="font-bold text-base text-primary">{selectedServiceObj?.price}€</span>
+                                        {userRole !== 'COACH' && <span className="font-bold text-base text-primary">{selectedServiceObj?.price}€</span>}
                                     </div>
                                 </div>
                             </Card>

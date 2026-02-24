@@ -41,7 +41,7 @@ interface NotificationBellProps {
 
 export function NotificationBell({ notifications, unreadCount }: NotificationBellProps) {
     const [open, setOpen] = useState(false)
-    const [localNotifications, setLocalNotifications] = useState(notifications)
+    const [localNotifications, setLocalNotifications] = useState(notifications || [])
     const [localUnreadCount, setLocalUnreadCount] = useState(unreadCount)
 
     useEffect(() => {

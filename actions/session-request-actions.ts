@@ -3,6 +3,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { sendPushToUser } from "@/lib/push"
 
 // Créer une demande de modification/annulation
 export async function createSessionChangeRequest(prevState: any, formData: FormData) {
@@ -93,6 +94,12 @@ export async function createSessionChangeRequest(prevState: any, formData: FormD
                     link: '/admin/requests'
                 }
             })
+            sendPushToUser(
+                admin.id,
+                `Demande de ${typeLabel}`,
+                `${targetSession.coach.name || targetSession.coach.email} demande ${type === 'CANCEL' ? "l'annulation" : "le report"} de la séance avec ${targetSession.client.name}.`,
+                { link: '/admin/requests' }
+            ).catch(err => console.error('[Push] Error sending to admin:', err))
         }
 
         revalidatePath("/planning")
@@ -181,6 +188,12 @@ export async function respondToSessionChangeRequest(prevState: any, formData: Fo
                 link: '/planning'
             }
         })
+        sendPushToUser(
+            request.coachId,
+            `Demande ${statusLabel}`,
+            `Votre demande ${typeLabel} pour la séance avec ${request.session.client.name} a été ${statusLabel}.`,
+            { link: '/planning' }
+        ).catch(err => console.error('[Push] Error sending to coach:', err))
 
         revalidatePath("/planning")
         revalidatePath("/admin/requests")
@@ -268,6 +281,12 @@ export async function getUnreadNotificationsCount() {
 export async function markNotificationAsRead(notificationId: string) {
     const session = await auth()
     if (!session?.user) return
+
+    // Vérifier que la notification appartient à l'utilisateur courant
+    const notification = await prisma.notification.findUnique({
+        where: { id: notificationId }
+    })
+    if (!notification || notification.userId !== session.user.id) return
 
     await prisma.notification.update({
         where: { id: notificationId },

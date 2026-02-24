@@ -151,7 +151,7 @@ export function EditSessionSheet({ session, coaches, open, onOpenChange, userRol
                             </div>
                         </div>
                         <div className="text-right">
-                            <p className="font-bold text-lg text-primary">{session.service.price}€</p>
+                            {isAdmin && <p className="font-bold text-lg text-primary">{session.service.price}€</p>}
                             <p className="text-xs text-muted-foreground">{session.service.durationMin} min</p>
                         </div>
                     </div>

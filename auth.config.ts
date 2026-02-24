@@ -15,8 +15,13 @@ export default {
             return token
         },
         async session({ session, token }) {
-            if (token.role && session.user) {
-                session.user.role = token.role as "ADMIN" | "COACH"
+            if (session.user) {
+                if (token.sub) {
+                    session.user.id = token.sub
+                }
+                if (token.role) {
+                    session.user.role = token.role as "ADMIN" | "COACH"
+                }
             }
             return session
         }

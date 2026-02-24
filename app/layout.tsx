@@ -4,7 +4,7 @@ import "./globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
-import { AndroidNotificationManager } from "@/components/android/notification-manager"
+import { PushNotificationManager } from "@/components/push/PushNotificationManager"
 import { Toaster } from "@/components/ui/sonner"
 import { StatusBarManager } from "@/components/status-bar-manager"
 import { SafeAreaProvider } from "@/components/safe-area-provider"
@@ -80,65 +80,65 @@ export default async function RootLayout({
         <SafeAreaProvider>
           <StatusBarManager />
           {isAuthenticated ? (
-          <SidebarProvider>
-            <AppSidebar userRole={userRole} />
-            {session?.user?.id && <AndroidNotificationManager userId={session.user.id} />}
-            <main className="flex-1 flex flex-col min-h-[100dvh] bg-background">
-              <header
-                className="flex shrink-0 items-center gap-3 border-b border-border/40 justify-between glass sticky top-0 z-40 transition-all duration-300"
-                style={{
-                  paddingTop: "calc(0.75rem + var(--safe-area-top, env(safe-area-inset-top, 0px)))",
-                  paddingBottom: "0.75rem",
-                  paddingLeft: "calc(1rem + var(--safe-area-left, env(safe-area-inset-left, 0px)))",
-                  paddingRight: "calc(1rem + var(--safe-area-right, env(safe-area-inset-right, 0px)))",
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <SidebarTrigger className="-ml-1 hidden md:flex touch-target" />
-                  <div className="h-5 w-px bg-border/60 hidden md:block" />
+            <SidebarProvider>
+              <AppSidebar userRole={userRole} />
+              {session?.user?.id && <PushNotificationManager userId={session.user.id} />}
+              <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden bg-background">
+                <header
+                  className="flex shrink-0 items-center gap-3 border-b border-border/40 justify-between glass sticky top-0 z-40 transition-all duration-300"
+                  style={{
+                    paddingTop: "calc(0.75rem + var(--safe-area-top, env(safe-area-inset-top, 0px)))",
+                    paddingBottom: "0.75rem",
+                    paddingLeft: "calc(1rem + var(--safe-area-left, env(safe-area-inset-left, 0px)))",
+                    paddingRight: "calc(1rem + var(--safe-area-right, env(safe-area-inset-right, 0px)))",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <SidebarTrigger className="-ml-1 hidden md:flex touch-target" />
+                    <div className="h-5 w-px bg-border/60 hidden md:block" />
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-xl hero-gradient flex items-center justify-center shadow-sm md:hidden">
+                        <span className="text-white font-bold text-sm">S</span>
+                      </div>
+                      <span className="font-semibold text-sm md:text-base tracking-tight">
+                        <span className="hidden sm:inline">SportSanté</span>
+                        <span className="sm:hidden gradient-text font-bold">SportSanté</span>
+                      </span>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-xl hero-gradient flex items-center justify-center shadow-sm md:hidden">
-                      <span className="text-white font-bold text-sm">S</span>
-                    </div>
-                    <span className="font-semibold text-sm md:text-base tracking-tight">
-                      <span className="hidden sm:inline">SportSanté</span>
-                      <span className="sm:hidden gradient-text font-bold">SportSanté</span>
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <NotificationBell notifications={notifications} unreadCount={unreadCount} />
-                  <div className="relative group">
-                    <div className="absolute -inset-0.5 hero-gradient rounded-full opacity-70 group-hover:opacity-100 transition-opacity blur-sm" />
-                    <div className="relative h-9 w-9 rounded-full bg-card flex items-center justify-center text-sm font-bold text-primary border-2 border-background">
-                      {session?.user?.name?.substring(0, 1).toUpperCase() || "U"}
+                    <NotificationBell notifications={JSON.parse(JSON.stringify(notifications))} unreadCount={unreadCount} />
+                    <div className="relative group">
+                      <div className="absolute -inset-0.5 hero-gradient rounded-full opacity-70 group-hover:opacity-100 transition-opacity blur-sm" />
+                      <div className="relative h-9 w-9 rounded-full bg-card flex items-center justify-center text-sm font-bold text-primary border-2 border-background">
+                        {session?.user?.name?.substring(0, 1).toUpperCase() || "U"}
+                      </div>
                     </div>
                   </div>
+                </header>
+
+                <div
+                  className="flex-1 overflow-y-auto overscroll-contain"
+                  style={{
+                    padding: "1rem",
+                    paddingBottom: "var(--content-padding-bottom, calc(5.5rem + env(safe-area-inset-bottom, 0px)))",
+                    paddingLeft: "calc(1rem + var(--safe-area-left, env(safe-area-inset-left, 0px)))",
+                    paddingRight: "calc(1rem + var(--safe-area-right, env(safe-area-inset-right, 0px)))",
+                  }}
+                >
+                  {children}
                 </div>
-              </header>
+              </main>
 
-              <div
-                className="flex-1 overflow-y-auto overscroll-contain"
-                style={{
-                  padding: "1rem",
-                  paddingBottom: "var(--content-padding-bottom, calc(5.5rem + env(safe-area-inset-bottom, 0px)))",
-                  paddingLeft: "calc(1rem + var(--safe-area-left, env(safe-area-inset-left, 0px)))",
-                  paddingRight: "calc(1rem + var(--safe-area-right, env(safe-area-inset-right, 0px)))",
-                }}
-              >
-                {children}
-              </div>
-            </main>
-
-            <MobileBottomNav userRole={userRole} />
-            <Toaster position="top-center" toastOptions={{ className: "!mb-0" }} />
-          </SidebarProvider>
-        ) : (
-          <>
-            {children}
-            <Toaster position="top-center" toastOptions={{ className: "!mb-0" }} />
-          </>
-        )}
+              <MobileBottomNav userRole={userRole} />
+              <Toaster position="top-center" toastOptions={{ className: "!mb-0" }} />
+            </SidebarProvider>
+          ) : (
+            <>
+              {children}
+              <Toaster position="top-center" toastOptions={{ className: "!mb-0" }} />
+            </>
+          )}
         </SafeAreaProvider>
       </body>
     </html>
