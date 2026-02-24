@@ -86,6 +86,8 @@ function sendApns(
     body: string,
     data?: Record<string, string>
 ): Promise<boolean> {
+    // APNs requires lowercase hex device token
+    const normalizedToken = deviceToken.toLowerCase()
     return new Promise((resolve) => {
         const jwt = getApnsJwt()
         if (!jwt) {
@@ -112,7 +114,7 @@ function sendApns(
 
         const headers = {
             ':method': 'POST',
-            ':path': `/3/device/${deviceToken}`,
+            ':path': `/3/device/${normalizedToken}`,
             'authorization': `bearer ${jwt}`,
             'apns-topic': APNS_BUNDLE_ID,
             'apns-push-type': 'alert',
